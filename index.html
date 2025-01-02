@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZWO Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Multi-ZWO Generator</h1>
+    <textarea id="schema" placeholder="Voer je trainingsschema in..."></textarea>
+    <button onclick="generateFiles()">Genereer ZWO-bestanden</button>
+    <a id="downloadLink" style="display:none;">Download ZWO Bestanden</a>
+
+    <script>
+        async function generateFiles() {
+            const schema = document.getElementById('schema').value;
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ schema })
+            });
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.getElementById('downloadLink');
+                link.href = url;
+                link.download = 'zwo_files.zip';
+                link.style.display = 'block';
+                link.textContent = 'Download ZWO Bestanden';
+            } else {
+                alert('Er is iets misgegaan. Controleer je invoer.');
+            }
+        }
+    </script>
+</body>
+</html>
