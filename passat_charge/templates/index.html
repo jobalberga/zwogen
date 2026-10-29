@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101a24">
+  <meta name="csrf-token" content="{{ csrf }}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Na de spits">
+  <title>Na de spits · Passat GTE</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icon.svg') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon.svg') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  {% if authenticated %}<script defer src="{{ url_for('static', filename='app.js') }}"></script>{% endif %}
+</head>
+<body>
+  <div class="shell">
+    <header class="header">
+      <a class="brand" href="/" aria-label="Na de spits, startpagina">
+        <span class="brand-icon" aria-hidden="true">↯</span>
+        <span>na de spits<span class="brand-period">.</span></span>
+      </a>
+      <div class="header-right">
+      {% if authenticated %}
+        <form action="/logout" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="logout" type="submit">Uitloggen</button></form>
+      {% endif %}</div>
+    </header>
+
+    {% if not authenticated %}
+    <main class="login-layout">
+      <div class="login-intro">
+        <h1>Passat laden</h1>
+        <p>Eenmalig laden vanaf 00:00 uur.</p>
+        <div class="login-time" aria-hidden="true">00<span>:</span>00<span class="time-spark">↯</span></div>
+      </div>
+      <section class="login-card">
+        <h2>Inloggen</h2>
+        <p>Gebruik het wachtwoord van deze app.</p>
+        <form action="/" method="post" class="login-form">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <label for="password">App-wachtwoord</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required {% if error %}aria-invalid="true" aria-describedby="login-error"{% endif %}>
+          {% if error %}<p class="form-error" id="login-error" role="alert">{{ error }}</p>{% endif %}
+          <button class="primary" type="submit">Inloggen <span aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></svg></span></button>
+        </form>
+      </section>
+    </main>
+    {% else %}
+    <main>
+      <section class="intro">
+        <h1>Laden plannen</h1>
+        <span class="today-label" id="today">Vandaag</span>
+      </section>
+
+      <div id="connection-error" class="connection-error" role="alert" hidden>Geen verbinding met de planner. Ververs de pagina voor een nieuwe opdracht.</div>
+      <div class="dashboard">
+        <section class="car-card" aria-labelledby="car-heading">
+          <div class="car-card-top"><div><span class="section-kicker">AUTO</span><h2 id="car-heading">Passat <span>GTE</span></h2><p>Plug-in hybride · 2020</p></div><span class="car-label">VOLKSWAGEN</span></div>
+          <div class="car-visual car-visual--photo">
+            <img class="car car-photo" src="{{ url_for('static', filename='passat-gte.jpg') }}" alt="Zwarte Volkswagen Passat GTE stationwagen" width="1170" height="574" decoding="async">
+          </div>
+          <div class="vehicle-metrics"><div><span class="metric-label">Accu</span><strong id="battery">—<span>%</span></strong></div><div><span class="metric-label">Laadkabel</span><strong class="metric-text" id="plug">Onbekend</strong></div><div><span class="metric-label">Laden</span><strong class="metric-text" id="charging">Onbekend</strong></div></div>
+          <div class="vehicle-footer"><span class="status-dot" id="vehicle-dot"></span><span id="vehicle-status">Laadstatus ophalen…</span><span class="updated" id="updated"></span></div>
+        </section>
+
+        <section class="plan-card" aria-labelledby="plan-heading">
+          <div class="plan-top"><span class="section-kicker">PLANNING</span><span class="once-badge">EENMALIG</span></div>
+          <h2 id="plan-heading">Starttijd</h2>
+          <p class="plan-subtitle" id="plan-subtitle">Komende nacht</p>
+          <div class="target-time"><span id="target-time">00:00</span><span class="time-unit">uur</span><span class="target-icon" aria-hidden="true">↯</span></div>
+          <div class="time-window" aria-hidden="true"><div class="time-window-track"><span class="peak-track"></span><span class="window-marker"></span><span class="calm-track"></span></div><div class="time-window-labels"><span>Tot 00:00</span><span class="calm-label">Vanaf 00:00</span></div></div>
+          <div class="plan-message" id="plan-message" aria-live="polite"><span class="message-icon" aria-hidden="true">i</span><p id="plan-message-text">Laadstatus ophalen…</p></div>
+          <button class="primary plan-button" id="plan-button" type="button" disabled><span id="button-label">Laadstatus ophalen…</span><span aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></svg></span></button>
+          <button class="cancel-button" id="cancel-button" type="button" hidden>Planning annuleren</button>
+          <p class="one-time-note">Geen dagelijkse herhaling.</p>
+          <p class="action-result" id="action-result" role="status" hidden></p>
+        </section>
+      </div>
+
+      <details class="good-to-know"><summary>Over de planning <span aria-hidden="true">+</span></summary><div><p>Sluit de laadkabel aan. De app vraagt Volkswagen het laden te pauzeren en vanaf 00:00 weer te starten. De getoonde datum is de startdatum. Een nieuwe planning kiest altijd de eerstvolgende middernacht, ook als je na 00:00 plant. De opdracht blijft actief als je deze pagina sluit.</p><p>De auto en de server moeten bereikbaar blijven. VW kan de opdracht vertraagd verwerken. Bij een verbroken verbinding kan deze app het laden niet tegenhouden.</p><p>Schakel andere laad- en vertrektimers uit. De status wordt ongeveer elke drie minuten gecontroleerd. Een opdracht is pas bevestigd na een nieuwe meting van de auto.</p><p>Annuleren verwijdert de geplande start en hervat het laden niet. Een verlopen opdracht wordt niet een nacht later uitgevoerd.</p></div></details>
+    </main>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,4 @@
+Flask==3.1.2
+waitress==3.0.2
+carconnectivity==0.11.11
+carconnectivity-connector-volkswagen==0.10.6

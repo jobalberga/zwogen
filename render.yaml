@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: na-de-spits
+    runtime: python
+    region: frankfurt
+    plan: starter
+    autoDeploy: false
+    buildCommand: pip install --disable-pip-version-check -r requirements.txt
+    startCommand: python -m passat_charge
+    healthCheckPath: /healthz
+    disk:
+      name: passat-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.14
+      - key: HOST
+        value: 0.0.0.0
+      - key: PASSAT_DATA_DIR
+        value: /var/data/passat
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: APP_PASSWORD
+        sync: false
+      - key: VW_USERNAME
+        sync: false
+      - key: VW_PASSWORD
+        sync: false
+      - key: VW_VIN
+        sync: false
