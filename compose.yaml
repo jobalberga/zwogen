@@ -1,0 +1,25 @@
+services:
+  passat:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PASSAT_DATA_DIR: /data
+      HOST: 0.0.0.0
+      PORT: "8080"
+      COOKIE_SECURE: "${COOKIE_SECURE:-0}"
+    ports:
+      - "${PASSAT_BIND_IP:-0.0.0.0}:18080:8080"
+    volumes:
+      - passat-data:/data
+    mem_limit: 384m
+    stop_grace_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+volumes:
+  passat-data:

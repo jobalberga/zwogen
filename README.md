@@ -12,6 +12,10 @@ Een privéwebapp voor een Volkswagen Passat GTE uit 2020. Sluit de laadkabel aan
 
 De eerdere ZWO-generator in `index.html` en `api/generate.py` is behouden. Deze nieuwe server biedt die bestanden niet aan.
 
+## Op je Synology NAS
+
+Voor installatie zonder hostingabonnement staan een Dockerfile en `compose.yaml` klaar. De container kan op ARM64 draaien, zoals de DS223j. Controleer eerst in DSM of **Container Manager** beschikbaar is. Zie [de Synology-instructies](SYNOLOGY.md) voor installatie en toegang vanaf je telefoon via thuiswifi. De installatie op jouw NAS en de fysieke VW-koppeling moeten daar nog worden getest.
+
 ## Online op je telefoon via Render
 
 `render.yaml` beschrijft één Python-webservice met een permanente schijf in Frankfurt. **Dit gebruikt een betaald Starter-abonnement plus schijf; er is nog niets aangemaakt of betaald.** Controleer de actuele prijs in Render voordat je de service aanmaakt. Een account en toegang tot deze GitHub-repository zijn nodig.
@@ -53,7 +57,7 @@ set +a
 .venv/bin/python -m passat_charge
 ```
 
-`python -m passat_charge` start zowel de Waitress-webserver als de planner. Gebruik dit startcommando ook bij hosting; alleen `flask run` of een WSGI-import start de planner niet. De app start zonder VW-gegevens, maar toont dan duidelijk dat de auto niet gekoppeld is en weigert laadopdrachten. Een app-wachtwoord blijft verplicht. Alleen voor lokale HTTP-ontwikkeling mag `COOKIE_SECURE=0` worden gebruikt.
+`python -m passat_charge` start zowel de Waitress-webserver als de planner. Gebruik dit startcommando ook bij hosting; alleen `flask run` of een WSGI-import start de planner niet. De app start zonder VW-gegevens, maar toont dan duidelijk dat de auto niet gekoppeld is en weigert laadopdrachten. Een app-wachtwoord blijft verplicht. Voor lokaal HTTP-gebruik op thuiswifi of tijdens ontwikkeling kan `COOKIE_SECURE=0` worden gebruikt. Voor publieke hosting en HTTPS blijft dit `1`.
 
 ```sh
 .venv/bin/python -m unittest discover -v
