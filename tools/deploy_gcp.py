@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run in your own Cloud Shell. Default is instructions only; --apply provisions."""
+"""Run in your own Cloud Shell. Default checks prerequisites; --apply provisions."""
 
 import argparse
 import datetime
@@ -20,6 +20,28 @@ def run(args, *, capture=False, input_text=None):
                             stdout=subprocess.PIPE if capture else None,
                             stderr=subprocess.PIPE if input_text is not None else None)
     return result.stdout.strip() if capture else ""
+
+
+def check_tools():
+    if not shutil.which("gcloud"):
+        raise ValueError("gcloud ontbreekt. Gebruik Google Cloud Shell.")
+    terraform = shutil.which("terraform")
+    install_hint = "Voer eerst bash tools/setup_cloud_shell.sh uit en probeer opnieuw."
+    if not terraform:
+        raise ValueError("Terraform ontbreekt. " + install_hint)
+    # Cloud Shell can ship a placeholder that prints installation instructions
+    # and exits successfully for every command. Its presence is not sufficient.
+    try:
+        info = json.loads(run([terraform, "version", "-json"], capture=True))
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
+        raise ValueError("Terraform werkt nog niet; mogelijk is alleen de Cloud Shell-placeholder aanwezig. "
+                         + install_hint) from None
+    version = info.get("terraform_version", "") if isinstance(info, dict) else ""
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version) if isinstance(version, str) else None
+    if not match or tuple(map(int, match.groups())) < (1, 6, 0):
+        raise ValueError("Een werkende Terraform-versie van minimaal 1.6 is nodig. " + install_hint)
+    print("Terraform " + version + ": beschikbaar.")
+    return terraform
 
 
 def seed_secrets(project):
@@ -61,10 +83,9 @@ def main():
         print("Met --apply: maak opslag, geheimen en accounts aan; bouw een image; start website en private laadwerker.")
         print("Er komen ook een takenwachtrij en één herstelcontrole per drie minuten. Gebruikskosten zijn mogelijk.")
         print("Lees GCP.md, controleer tarieven en stel een budgetmelding in vóór je --apply gebruikt.")
+        check_tools()
         return
-    for tool in ("gcloud", "terraform"):
-        if not shutil.which(tool):
-            raise ValueError(tool + " ontbreekt. Gebruik Google Cloud Shell of installeer het eerst.")
+    terraform = check_tools()
     billing = run(["gcloud", "billing", "projects", "describe", args.project_id,
                    "--format=value(billingEnabled)"], capture=True)
     if billing.lower() != "true":
@@ -79,19 +100,22 @@ def main():
             raise ValueError("Deze checkout heeft al een andere installatie. Bewaar de bestaande Terraform-state.")
         config.update(existing)  # Keep existing services running during an update.
     config_path.write_text(json.dumps(config, indent=2) + "\n")
-    tf = ["terraform", "-chdir=" + str(INFRA)]
+    tf = [terraform, "-chdir=" + str(INFRA)]
     run(tf + ["init", "-input=false"])
     def apply():
         plan = INFRA / "deployment.tfplan"
+        plan.unlink(missing_ok=True)
         run(tf + ["plan", "-input=false", "-out=" + str(plan)])
+        if not plan.is_file():
+            raise ValueError("Terraform heeft geen installatieplan gemaakt. Er wordt niet verdergegaan.")
         run(tf + ["apply", "-input=false", str(plan)])
         plan.unlink(missing_ok=True)
     apply()
-    seed_secrets(args.project_id)
     outputs = json.loads(run(tf + ["output", "-json"], capture=True))
     repo = outputs["image_repository"]["value"]
     bucket = outputs["build_bucket"]["value"]
     builder = outputs["builder_account"]["value"]
+    seed_secrets(args.project_id)
     tag = repo + ":deploy-" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d%H%M%S")
     run(["gcloud", "builds", "submit", str(ROOT), "--project", args.project_id, "--tag", tag,
          "--service-account=projects/" + args.project_id + "/serviceAccounts/" + builder,

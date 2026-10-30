@@ -21,15 +21,16 @@ Voer dit uit in je eigen Cloud Shell:
 ```sh
 git clone --branch codex/passat-midnight https://github.com/jobalberga/zwogen.git
 cd zwogen
-python3 tools/deploy_gcp.py JOUW-PROJECT-ID
+bash tools/setup_cloud_shell.sh
+PATH="$HOME/.local/bin:$PATH" python3 tools/deploy_gcp.py JOUW-PROJECT-ID
 ```
 
-Vervang `JOUW-PROJECT-ID` door de echte project-ID. Dit laatste commando maakt nog niets aan. Lees de uitleg en controleer of `gcloud` en Terraform (minimaal 1.6) aanwezig zijn. Voor de offline infrastructuurtests is Terraform 1.7 of nieuwer nodig. Het script schakelt bij installatie de benodigde API's in; de gebruiker heeft projectbeheerrechten en toegang tot het gekoppelde factureringsaccount nodig.
+Vervang `JOUW-PROJECT-ID` door de echte project-ID. Het voorbereidingscommando maakt nog geen clouddiensten aan en controleert of Terraform daadwerkelijk werkt (minimaal 1.6). Cloud Shell kan een placeholder bevatten die alleen installatie-instructies toont, zelfs met afsluitcode nul. `setup_cloud_shell.sh` installeert zo nodig de echte versie via HashiCorp's ondertekende APT-pakketbron en bewaart een kopie in je persoonlijke map. Het script kan daarbij om systeemtoegang via `sudo` vragen. Voor de offline infrastructuurtests is Terraform 1.7 of nieuwer nodig. Het deployscript schakelt bij installatie de benodigde API's in; de gebruiker heeft projectbeheerrechten en toegang tot het gekoppelde factureringsaccount nodig.
 
 Om de gebruiksafhankelijke diensten daadwerkelijk aan te maken:
 
 ```sh
-python3 tools/deploy_gcp.py JOUW-PROJECT-ID --apply
+PATH="$HOME/.local/bin:$PATH" python3 tools/deploy_gcp.py JOUW-PROJECT-ID --apply
 ```
 
 Het script bereidt eerst accounts, opslag, queue en lege Secret Manager-items voor. Daarna vraagt het in de terminal om een apart app-wachtwoord, VW-e-mailadres, VW-wachtwoord en VIN. Wachtwoorden verschijnen niet tijdens het typen. Deze waarden gaan via standaardinvoer naar Secret Manager: niet naar GitHub, Terraform-state, commandoargumenten of een lokaal configuratiebestand. Bestaande geheime configuraties worden behouden.
@@ -37,6 +38,17 @@ Het script bereidt eerst accounts, opslag, queue en lege Secret Manager-items vo
 Daarna wordt de container in jouw project gebouwd en worden de services gestart met het exacte image-digest. De scriptuitvoer eindigt met het HTTPS-adres van je website. Google kan vragen om toegang tot je GitHub-repository tijdens het klonen; gebruik de gebruikelijke GitHub-toegang, geen token in deze chat.
 
 De standaardregio is `europe-west1` (België). De database, buckets en geheime configuratie worden in die regio geplaatst. De website gebruikt de Nederlandse tijdzone voor de tijdkeuze. Een regio kies je bij de eerste installatie; wijzig die niet achteraf zonder een migratieplan.
+
+### Terraform toont alleen installatie-instructies
+
+Als een eerdere poging meerdere keren `Follow the instructions … to install terraform` liet zien en daarna eindigde met `Secret … passat-web … not found`, is Terraform nog niet uitgevoerd. Maak de geheimen niet handmatig aan. Haal de bijgewerkte scripts op en probeer opnieuw vanuit dezelfde map, zodat eventuele bestaande configuratie en Terraform-state behouden blijven:
+
+```sh
+cd ~/zwogen
+git pull --ff-only
+bash tools/setup_cloud_shell.sh
+PATH="$HOME/.local/bin:$PATH" python3 tools/deploy_gcp.py JOUW-PROJECT-ID --apply
+```
 
 ## Eerste controle
 
