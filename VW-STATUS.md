@@ -24,6 +24,20 @@ Bronnen:
 
 Een Data Act-koppeling vervangt daarom de gewenste laadbediening niet. Opnieuw installeren of steeds dezelfde aanmelding herhalen lost de vastgestelde blokkade niet op.
 
+## Vattenfall als andere route
+
+De eigenaar meldt dat Vattenfall de Passat zelf op afstand kan aansturen terwijl die met een gewone stopcontactlader laadt. Voor de Vattenfall-koppeling moest de eigenaar bij de ontgrendelde auto staan en onder meer het VIN opgeven. Dit is niet door ons op de auto getest. Het is wel reden om andere voertuigkoppelingen te onderzoeken voordat laadapparatuur wordt vervangen. De 403 hierboven bewijst uitsluitend dat de route van onze huidige connector wordt geweigerd, niet dat elke externe voertuigkoppeling onmogelijk is.
+
+De fysieke controle lijkt bedoeld om het eigenaarschap vast te stellen. Daarmee is nog niet bekend welke technische leverancier, API of toegangsrechten Vattenfall vervolgens gebruikt. Het opnieuw ontgrendelen van de auto verandert de eerste aanvraag van onze connector niet: die aanvraag bevat geen VIN of gebruikersgegevens. Een aansluiting op de Vattenfall-route vereist eerst identificatie van de leverancier en een beschikbare interface voor voertuigbediening.
+
+De volgende openbare InCharge-integraties zijn gecontroleerd, maar bieden geen aangetoonde oplossing voor deze directe voertuigbediening:
+
+- [tgriek/incharge](https://github.com/tgriek/incharge): laadstations en verbruik uitlezen.
+- [QuadNL/Vattenfall-InCharge-integration](https://github.com/QuadNL/Vattenfall-InCharge-integration): openbare laadpunten, accountgegevens en laadgeschiedenis.
+- [Swopper050/py-incharge](https://github.com/Swopper050/py-incharge): Vattenfall-laadstations bedienen via een station-ID en laadpas; dit is geen bediening van een auto met een losse stopcontactlader.
+
+De naam van de leverancier of de privacy-/toestemmingstekst bij de autokoppeling kan de juiste route identificeren. De leverancier, beschikbaarheid voor persoonlijk gebruik, kosten en ondersteuning voor een eenmalige gekozen starttijd zijn nog niet vastgesteld. De Vattenfall-voertuigkoppeling is nog niet in deze website geïntegreerd.
+
 ## Achtergrondtaken pauzeren
 
 Voer in je eigen Cloud Shell uit, met de project-ID van de installatie:
