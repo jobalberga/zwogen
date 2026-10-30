@@ -12,6 +12,10 @@ Een privéwebapp voor een Volkswagen Passat GTE uit 2020. Sluit de laadkabel aan
 
 De eerdere ZWO-generator in `index.html` en `api/generate.py` is behouden. Deze nieuwe server biedt die bestanden niet aan.
 
+## Alternatief zonder vaste serverhuur
+
+Zie [het onderzoek naar serverloze hosting](SERVERLESS.md) voor de vergelijking van Cloudflare, Google Cloud en AWS. De voorkeursroute bij acceptatie van kleine gebruikskosten is Cloud Run met Cloud Tasks en Firestore. Die ombouw is nog niet uitgevoerd; de onderstaande installatiebestanden starten nog de bestaande serverversie.
+
 ## Op je Synology NAS
 
 Voor installatie zonder hostingabonnement staan een Dockerfile en `compose.yaml` klaar. De container kan op ARM64 draaien, zoals de DS223j. Controleer eerst in DSM of **Container Manager** beschikbaar is. Zie [de Synology-instructies](SYNOLOGY.md) voor installatie en toegang vanaf je telefoon via thuiswifi. De installatie op jouw NAS en de fysieke VW-koppeling moeten daar nog worden getest.
