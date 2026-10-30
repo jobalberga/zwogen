@@ -50,6 +50,10 @@ bash tools/setup_cloud_shell.sh
 PATH="$HOME/.local/bin:$PATH" python3 tools/deploy_gcp.py JOUW-PROJECT-ID --apply
 ```
 
+### Cloud Build meldt dat het bouwaccount geen toegang heeft tot de bucket
+
+Bij `FAILED_PRECONDITION: invalid bucket … service account … does not have access to the bucket` moet het bouwaccount naast toegang tot de bestanden ook de bucketmetadata kunnen lezen (`storage.buckets.get`). De configuratie kent daarvoor `roles/storage.legacyBucketReader` toe op uitsluitend de bouwbucket. Deze rol maakt geen gegevens openbaar. Haal de nieuwste configuratie op met `git pull --ff-only` en voer het installatiecommando opnieuw uit. Bestaande wachtwoorden worden behouden. Als dezelfde fout direct na de wijziging terugkomt, kunnen de nieuwe Google-toegangsrechten nog enkele minuten nodig hebben om door te werken; probeer daarna opnieuw.
+
 ## Eerste controle
 
 1. Open het HTTPS-adres op je telefoon en log in met het app-wachtwoord.

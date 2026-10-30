@@ -133,6 +133,14 @@ resource "google_storage_bucket_iam_member" "builder" {
   member = "serviceAccount:${google_service_account.runtime["builder"].email}"
 }
 
+# Cloud Build also checks bucket metadata (storage.buckets.get). Object access
+# alone does not allow that check for the source and log bucket.
+resource "google_storage_bucket_iam_member" "builder_bucket_reader" {
+  bucket = google_storage_bucket.build.name
+  role   = "roles/storage.legacyBucketReader"
+  member = "serviceAccount:${google_service_account.runtime["builder"].email}"
+}
+
 resource "google_artifact_registry_repository" "app" {
   location      = var.region
   repository_id = "passat"

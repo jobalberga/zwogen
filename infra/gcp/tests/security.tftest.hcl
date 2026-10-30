@@ -54,6 +54,16 @@ run "private_worker_and_least_privilege" {
     error_message = "Token bucket must prohibit public access."
   }
   assert {
+    condition = (
+      google_storage_bucket_iam_member.builder_bucket_reader.role == "roles/storage.legacyBucketReader" &&
+      google_storage_bucket_iam_member.builder_bucket_reader.bucket == google_storage_bucket.build.name &&
+      google_storage_bucket_iam_member.builder_bucket_reader.member == "serviceAccount:passat-builder@test-project.iam.gserviceaccount.com" &&
+      google_storage_bucket_iam_member.builder.bucket == google_storage_bucket.build.name &&
+      google_storage_bucket_iam_member.builder.role == "roles/storage.objectUser"
+    )
+    error_message = "The builder must read bucket metadata and build objects within the build bucket only."
+  }
+  assert {
     condition     = google_cloud_run_v2_service.worker[0].template[0].scaling[0].min_instance_count == 0 && google_cloud_run_v2_service.web[0].template[0].scaling[0].min_instance_count == 0
     error_message = "Both services must scale to zero."
   }
