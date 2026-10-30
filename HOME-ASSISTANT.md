@@ -20,7 +20,13 @@ Een praktische overstap naar Home Assistant is daarom pas zinvol voor deze laadt
 ## Gratis routes die nog onderzocht kunnen worden
 
 1. **De ingebouwde e-Manager/laadtimer van de Passat.** Controleer op de echte auto de mogelijkheden voor voorkeurtijden, minimumlading, vertrektijd en eenmalig activeren. Er is nog geen passende combinatie bevestigd die exact het gewenste gedrag geeft.
-2. **Acties van de officiële VW-app in iPhone Opdrachten.** Alleen als de geïnstalleerde app echte acties voor laadstart en laadstop aanbiedt, is dit een kandidaat. Alleen de app openen is onvoldoende voor onbemande bediening terwijl de telefoon is vergrendeld. Beschikbaarheid van die laadacties is nog niet bevestigd.
+2. **Acties van de officiële VW-app in iPhone Opdrachten: afgevallen voor de huidige telefoon/app.** De eigenaar heeft gecontroleerd dat alleen de app kan worden geopend. Er zijn geen laadstart-/laadstopacties gevonden. Alleen openen is onvoldoende voor onbemande laadbediening terwijl de telefoon is vergrendeld.
 3. **Tijdregeling bij de stroomtoevoer.** Dit vergt geschikte hardware voor langdurig EV-laden en controle dat de stopcontactlader vanzelf hervat zodra stroom terugkomt. Apple Woning en de Apple TV zouden de tijdregeling kunnen verzorgen; Home Assistant is daarvoor niet noodzakelijk. De bestaande laadkabel en schakeling zijn nog niet geïdentificeerd of getest.
 
 Deze opties hebben geen aangetoonde betaalde voertuig-API nodig, maar zijn nog geen geteste vervanging van de huidige planner. Er is geen Home Assistant-installatie uitgevoerd en geen apparaat of abonnement aangeschaft.
+
+## Vervolgonderzoek e-Manager
+
+In [de discussie over laadprofielen](https://github.com/robinostlund/homeassistant-volkswagencarnet/issues/809) wordt expliciet onderscheid gemaakt tussen de eerste Golf/Passat GTE-generatie en nieuwere VW-modellen: de oudere GTE's hebben drie vertrektijden, elk met een eigen voorkeurslaadperiode. De [eerdere timerdiscussie](https://github.com/robinostlund/homeassistant-volkswagencarnet/issues/547) beschrijft het gebruik van die voorkeurstijden om nachtelijk laden te regelen en het kunnen in- en uitschakelen van de profielen.
+
+Dit is gebruikersdocumentatie, geen gecontroleerde handleiding voor de softwareversie van deze auto. Controleer daarom eerst in de officiële VW-app of e-Manager bij één vertrektijd welke laadinstellingen werkelijk aanwezig zijn. Er is nog niet bevestigd dat een profiel één keer wordt uitgevoerd, dat precies om 00:00 wordt gestart of welke instelling voor minimumlading eventueel direct laden veroorzaakt. Een vertrektijd is op zichzelf geen laadstarttijd. De volgende noodzakelijke invoer is het echte instellingenscherm van één vertrektijd; nieuwe API's, abonnementen of een Home Assistant-installatie zijn daarvoor niet nodig.
