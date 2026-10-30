@@ -4,6 +4,8 @@
 
 Het [onderzoek naar alternatieve voertuig-API's](VW-ALTERNATIEVEN.md) beschrijft Smartcar, Enode en de resterende controles op ondersteuning en kosten.
 
+De auto is inmiddels bij Smartcar gekoppeld. De [Smartcar-instructies](SMARTCAR.md) beschrijven de nog te verlenen rechten en een leescontrole. Smartcar bestuurt de auto nog niet via deze website.
+
 Een privéwebapp voor een Volkswagen Passat GTE uit 2020, bedoeld om via Volkswagen een **eenmalige laadstart op een gekozen tijd, in Nederlandse tijd** te plannen zonder slimme laadpaal. De interface werkt op een telefoon en kan aan het beginscherm worden toegevoegd. De huidige blokkade verhindert de voertuigbediening.
 
 ## Geïmplementeerd en lokaal getest

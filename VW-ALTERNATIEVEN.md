@@ -4,7 +4,7 @@ Onderzocht op 30 oktober 2026 voor één Nederlandse Volkswagen Passat GTE uit 2
 
 ## Resultaat
 
-Er zijn commerciële voertuig-API's waarmee een eigen planner technisch mogelijk kan zijn. Smartcar is een concrete kandidaat met een beschreven ontwikkelaarsroute. Enode is eveneens een kandidaat, maar toegang tot echte voertuigen moet eerst worden goedgekeurd. Voor geen van beide zijn laadstart/stop voor precies deze auto in Nederland en de huidige gebruikskosten bevestigd. Er is nog geen nieuwe koppeling gebouwd of een proef met de echte auto uitgevoerd.
+Er zijn commerciële voertuig-API's waarmee een eigen planner technisch mogelijk kan zijn. Smartcar is een concrete kandidaat met een beschreven ontwikkelaarsroute. Enode is eveneens een kandidaat, maar toegang tot echte voertuigen moet eerst worden goedgekeurd. De eigenaar heeft inmiddels een geslaagde Volkswagen-koppeling bij Smartcar laten zien. Het dashboard meldt nog **No permissions** voor laadgegevens en **Control EV Charge** staat uit. Zie [de Smartcar-instructies en veilige leescontrole](SMARTCAR.md) voor het vervolg. Er is nog geen laadstart/stop voor deze auto bevestigd, geen nieuwe voertuigadapter in de website geactiveerd en geen fysieke laadproef uitgevoerd. Het getoonde prijsblad biedt nieuwe kosteninformatie; ook die staat in de Smartcar-instructies.
 
 De leverancier van Vattenfalls directe autokoppeling is nog niet geïdentificeerd. De eigenaar bevestigt dat Vattenfall de Passat zelf kan aansturen en beschrijft een koppelprocedure bij de ontgrendelde auto met VIN. Dat is bewijs van een andere werkende toegang voor zijn gebruik, maar het identificeert geen API-leverancier en bewijst niet dat dezelfde toegang beschikbaar is voor een particuliere ontwikkelaar.
 
