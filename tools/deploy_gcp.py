@@ -44,6 +44,26 @@ def check_tools():
     return terraform
 
 
+def required_upload_files():
+    package = ROOT / "passat_charge"
+    return {"Dockerfile", "requirements.txt"} | {
+        path.relative_to(ROOT).as_posix() for path in package.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc"
+    }
+
+
+def check_upload():
+    # Use gcloud's actual ignore rules rather than inspecting the source tree
+    # alone. In particular, a bare index.html pattern also excludes templates.
+    listed = run(["gcloud", "meta", "list-files-for-upload"], capture=True)
+    uploaded = {line.strip().removeprefix("./") for line in listed.splitlines()}
+    missing = required_upload_files() - uploaded
+    if missing:
+        raise ValueError("Bouwpakket mist appbestanden: " + ", ".join(sorted(missing))
+                         + ". Controleer .gcloudignore voordat je opnieuw bouwt.")
+    print("Bouwpakket: alle appbestanden worden meegestuurd.")
+
+
 def seed_secrets(project):
     for name in ("web", "vw"):
         resource = "passat-" + name
@@ -84,8 +104,10 @@ def main():
         print("Er komen ook een takenwachtrij en één herstelcontrole per drie minuten. Gebruikskosten zijn mogelijk.")
         print("Lees GCP.md, controleer tarieven en stel een budgetmelding in vóór je --apply gebruikt.")
         check_tools()
+        check_upload()
         return
     terraform = check_tools()
+    check_upload()
     billing = run(["gcloud", "billing", "projects", "describe", args.project_id,
                    "--format=value(billingEnabled)"], capture=True)
     if billing.lower() != "true":

@@ -25,7 +25,7 @@ bash tools/setup_cloud_shell.sh
 PATH="$HOME/.local/bin:$PATH" python3 tools/deploy_gcp.py JOUW-PROJECT-ID
 ```
 
-Vervang `JOUW-PROJECT-ID` door de echte project-ID. Het voorbereidingscommando maakt nog geen clouddiensten aan en controleert of Terraform daadwerkelijk werkt (minimaal 1.6). Cloud Shell kan een placeholder bevatten die alleen installatie-instructies toont, zelfs met afsluitcode nul. `setup_cloud_shell.sh` installeert zo nodig de echte versie via HashiCorp's ondertekende APT-pakketbron en bewaart een kopie in je persoonlijke map. Het script kan daarbij om systeemtoegang via `sudo` vragen. Voor de offline infrastructuurtests is Terraform 1.7 of nieuwer nodig. Het deployscript schakelt bij installatie de benodigde API's in; de gebruiker heeft projectbeheerrechten en toegang tot het gekoppelde factureringsaccount nodig.
+Vervang `JOUW-PROJECT-ID` door de echte project-ID. Het voorbereidingscommando maakt nog geen clouddiensten aan, controleert of Terraform daadwerkelijk werkt (minimaal 1.6) en controleert met `gcloud meta list-files-for-upload` of alle appbestanden worden meegestuurd. Cloud Shell kan een placeholder bevatten die alleen installatie-instructies toont, zelfs met afsluitcode nul. `setup_cloud_shell.sh` installeert zo nodig de echte versie via HashiCorp's ondertekende APT-pakketbron en bewaart een kopie in je persoonlijke map. Het script kan daarbij om systeemtoegang via `sudo` vragen. Voor de offline infrastructuurtests is Terraform 1.7 of nieuwer nodig. Het deployscript schakelt bij installatie de benodigde API's in; de gebruiker heeft projectbeheerrechten en toegang tot het gekoppelde factureringsaccount nodig.
 
 Om de gebruiksafhankelijke diensten daadwerkelijk aan te maken:
 
@@ -53,6 +53,10 @@ PATH="$HOME/.local/bin:$PATH" python3 tools/deploy_gcp.py JOUW-PROJECT-ID --appl
 ### Cloud Build meldt dat het bouwaccount geen toegang heeft tot de bucket
 
 Bij `FAILED_PRECONDITION: invalid bucket … service account … does not have access to the bucket` moet het bouwaccount naast toegang tot de bestanden ook de bucketmetadata kunnen lezen (`storage.buckets.get`). De configuratie kent daarvoor `roles/storage.legacyBucketReader` toe op uitsluitend de bouwbucket. Deze rol maakt geen gegevens openbaar. Haal de nieuwste configuratie op met `git pull --ff-only` en voer het installatiecommando opnieuw uit. Bestaande wachtwoorden worden behouden. Als dezelfde fout direct na de wijziging terugkomt, kunnen de nieuwe Google-toegangsrechten nog enkele minuten nodig hebben om door te werken; probeer daarna opnieuw.
+
+### De website opent met een JSON-fout
+
+De melding `Dienst tijdelijk niet beschikbaar` verbergt de interne fout. Bij eerdere builds sloot het patroon `index.html` in `.gcloudignore` ook `passat_charge/templates/index.html` uit, waardoor de inlogpagina ontbrak. Het patroon is beperkt tot `/index.html` (de oude site in de hoofdmap). Haal de nieuwste code op en voer het installatiecommando opnieuw uit om een nieuw image te bouwen. De nieuwe uploadcontrole stopt als een appbestand wordt uitgesloten. Als de melding daarna blijft verschijnen, lees dan de webservicelogs; de foutklasse wordt gelogd zonder de ruwe providerfout.
 
 ## Eerste controle
 

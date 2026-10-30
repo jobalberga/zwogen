@@ -10,4 +10,4 @@ data
 infra
 tests
 api
-index.html
+/index.html

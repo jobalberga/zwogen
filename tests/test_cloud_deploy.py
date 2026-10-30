@@ -16,11 +16,43 @@ SPEC.loader.exec_module(deploy)
 class DeploymentTests(unittest.TestCase):
     def test_default_invocation_cannot_create_resources(self):
         with patch("sys.argv", ["deploy_gcp.py", "test-project"]), patch.object(deploy, "run") as run:
-            run.return_value = '{"terraform_version": "1.10.5"}'
+            run.side_effect = ['{"terraform_version": "1.10.5"}', "\n".join(deploy.required_upload_files())]
             with patch.object(deploy.shutil, "which", side_effect=lambda name: "/usr/bin/" + name):
                 with contextlib.redirect_stdout(io.StringIO()):
                     deploy.main()
-            run.assert_called_once_with(["/usr/bin/terraform", "version", "-json"], capture=True)
+            self.assertEqual([call.args[0] for call in run.call_args_list], [
+                ["/usr/bin/terraform", "version", "-json"],
+                ["gcloud", "meta", "list-files-for-upload"],
+            ])
+
+    def test_gcloud_ignore_keeps_templates_and_excludes_legacy_site_and_private_files(self):
+        excluded = {"index.html", "api/generate.py", ".env", "data/vw-tokens.json",
+                    "infra/gcp/terraform.tfstate", "infra/gcp/deployment.auto.tfvars.json"}
+        required = deploy.required_upload_files()
+        result = subprocess.run([
+            "git", "-c", "core.excludesFile=" + str(deploy.ROOT / ".gcloudignore"),
+            "check-ignore", "--no-index", "--stdin", "-z",
+        ], cwd=deploy.ROOT, input="\0".join(sorted(required | excluded)) + "\0",
+            text=True, capture_output=True, check=True)
+        ignored = set(result.stdout.rstrip("\0").split("\0"))
+        self.assertFalse(required & ignored, "App files excluded from upload: " + repr(required & ignored))
+        self.assertTrue(excluded <= ignored)
+
+    def test_missing_uploaded_template_stops_before_cloud_mutation(self):
+        files = deploy.required_upload_files() - {"passat_charge/templates/index.html"}
+        with patch("sys.argv", ["deploy_gcp.py", "test-project", "--apply"]):
+            with patch.object(deploy, "check_tools", return_value="terraform"):
+                with patch.object(deploy, "run", return_value="\n".join(files)) as run:
+                    with self.assertRaisesRegex(ValueError, "passat_charge/templates/index.html"):
+                        deploy.main()
+                run.assert_called_once_with(["gcloud", "meta", "list-files-for-upload"], capture=True)
+
+    def test_complete_upload_is_accepted(self):
+        files = "\n".join("./" + path for path in deploy.required_upload_files())
+        with patch.object(deploy, "run", return_value=files):
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                deploy.check_upload()
+            self.assertIn("alle appbestanden", output.getvalue())
 
     def test_placeholder_is_rejected_before_any_cloud_mutation(self):
         with patch("sys.argv", ["deploy_gcp.py", "test-project", "--apply"]):
@@ -64,7 +96,7 @@ class DeploymentTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with patch.object(deploy, "INFRA", Path(directory)):
                 with patch("sys.argv", ["deploy_gcp.py", "test-project", "--apply"]):
-                    with patch.object(deploy, "check_tools", return_value="terraform"):
+                    with patch.object(deploy, "check_tools", return_value="terraform"), patch.object(deploy, "check_upload"):
                         with patch.object(deploy, "run", return_value="true") as run:
                             with patch.object(deploy, "seed_secrets") as seed:
                                 with self.assertRaisesRegex(ValueError, "geen installatieplan"):
