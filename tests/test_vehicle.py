@@ -88,6 +88,7 @@ class VolkswagenAdapterTests(unittest.TestCase):
     def test_authentication_failures_distinguish_action_without_exposing_provider_data(self):
         private = " private-token-and-password-must-not-escape test-only@example.invalid " + self.vin
         cases = [
+            (AuthenticationError("Authorization URL could not be fetched due to WeConnect failure" + private), "geen aanmeldadres"),
             (AuthenticationError("Password is invalid" + private), "wachtwoord niet"),
             (AuthenticationError("login.errors.password_invalid" + private), "wachtwoord niet"),
             (AuthenticationError("Accept the terms and conditions" + private), "voorwaarden"),

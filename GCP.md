@@ -2,7 +2,7 @@
 
 Deze versie gebruikt Cloud Run voor de website en een aparte private laadwerker, Cloud Tasks voor korte taken en Firestore voor de planning. De website blijft op je telefoon werken. Er draait geen Python-planner op de achtergrond. Beide Cloud Run-services mogen naar nul instanties schalen.
 
-De installatie is voorbereid en lokaal getest. Er is nog geen Google Cloud-project gebruikt, geen publieke website aangemaakt en geen echt VW-account gekoppeld. De eerste cloudinstallatie, echte taakaflevering met Google-identiteit en een fysieke pauze/start-test blijven nodig.
+De website en achtergrondtaak zijn op Google Cloud geïnstalleerd. De eerste VW-aanmeldstap faalt met HTTP 403, vóór het versturen van inloggegevens. Er is nog geen succesvolle voertuigkoppeling of fysieke pauze/start-test. Zie [de actuele blokkade en het pauzeren van achtergrondtaken](VW-STATUS.md) voordat je opnieuw installeert.
 
 ## Wat je eerst zelf aanmaakt
 

@@ -1,8 +1,10 @@
 # Na de spits
 
-Een privéwebapp voor een Volkswagen Passat GTE uit 2020. Sluit de laadkabel aan, kies bij **Starten om** een tijd en plan een **eenmalige start op een gekozen tijd, in Nederlandse tijd**. De app bedient de auto via Volkswagen; een slimme laadpaal is niet nodig. De interface werkt op een telefoon en kan aan het beginscherm worden toegevoegd.
+**VW-koppeling momenteel geblokkeerd.** De website draait, maar Volkswagen weigert de eerste aanmeldstap van de gebruikte onofficiële connector met HTTP 403. Automatisch laden is hierdoor nog niet bruikbaar. Zie [de vastgestelde blokkade en het pauzeren van achtergrondtaken](VW-STATUS.md).
 
-## Wat werkt
+Een privéwebapp voor een Volkswagen Passat GTE uit 2020, bedoeld om via Volkswagen een **eenmalige laadstart op een gekozen tijd, in Nederlandse tijd** te plannen zonder slimme laadpaal. De interface werkt op een telefoon en kan aan het beginscherm worden toegevoegd. De huidige blokkade verhindert de voertuigbediening.
+
+## Geïmplementeerd en lokaal getest
 
 - De planner vraagt de auto het laden te pauzeren, bewaart de eenmalige opdracht in Firestore (cloudmodus) of SQLite (lokale modus) en vraagt op het eerstvolgende voorkomen van de gekozen tijd om te starten. De keuzelijst bevat tijden per halfuur, met 00:00 als standaard. De startdatum staat erbij. Een verstreken tijd wordt voor de volgende dag gepland. Een bestaande opdracht wordt op het opgeslagen tijdstip uitgevoerd.
 - De opdracht blijft bewaard bij een serverherstart. De telefoon mag dicht. In cloudmodus voeren opgeslagen taken het werk uit terwijl de services mogen slapen. In lokale modus moet de server blijven draaien. Een statische pagina alleen voert geen laadopdrachten uit.
@@ -14,7 +16,7 @@ De eerdere ZWO-generator in `index.html` en `api/generate.py` is behouden. Deze 
 
 ## Google Cloud: zonder vaste serverhuur
 
-De serverloze uitvoering gebruikt Cloud Run, Cloud Tasks en Firestore, met een afgeschermde laadwerker en aparte geheime opslag. De implementatie en lokale tests staan klaar; er is nog niets op Google Cloud geïnstalleerd. Begin bij [de installatiehandleiding voor Google Cloud](GCP.md). Je hebt een eigen project met facturering nodig. Gebruikskosten zijn mogelijk.
+De serverloze uitvoering gebruikt Cloud Run, Cloud Tasks en Firestore, met een afgeschermde laadwerker en aparte geheime opslag. De website is op Google Cloud geïnstalleerd; de VW-aanmelding blokkeert de daadwerkelijke laadbediening. Zie eerst [de actuele VW-status](VW-STATUS.md). De [installatiehandleiding voor Google Cloud](GCP.md) blijft beschikbaar voor ontwikkeling. Je hebt een eigen project met facturering nodig. Gebruikskosten zijn mogelijk.
 
 [Het hostingonderzoek](SERVERLESS.md) beschrijft de afweging. De NAS- en Render-configuraties hieronder blijven als lokale servervariant beschikbaar.
 
@@ -80,4 +82,4 @@ Als laden vóór de geplande starttijd opnieuw wordt waargenomen, bijvoorbeeld n
 
 ## Huidige verificatie
 
-70 lokale tests controleren planning, webbediening, VW-bibliotheekobjecten, cloudtaakherstel en Firestore-opslag. Ook de containeropstart en Terraform-configuratie zijn lokaal gecontroleerd. Een echt VW-account is nog niet gekoppeld, er zijn geen opdrachten naar jouw auto gestuurd en er is nog geen publieke hosting aangemaakt. De eerste echte laadtest en de productie-HTTPS-koppeling blijven onderdeel van ingebruikname.
+Lokale tests controleren planning, webbediening, VW-bibliotheekobjecten, cloudtaakherstel, Firestore-opslag, verpakking en afscherming van diagnosegegevens. Ook de containeropstart en Terraform-configuratie zijn lokaal gecontroleerd. De publieke website en de achtergrondtaak draaien op Google Cloud, maar een echt VW-account is nog niet succesvol gekoppeld. Er is geen geslaagde fysieke laadtest. De VW-aanmeldblokkade moet worden opgelost voordat de planner bruikbaar is.

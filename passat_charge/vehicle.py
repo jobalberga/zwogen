@@ -16,6 +16,8 @@ def authentication_message(error):
     if isinstance(error, TemporaryAuthenticationError):
         return "De Volkswagen-inlogdienst is tijdelijk niet beschikbaar. Probeer het later opnieuw."
     reason = str(error).lower()
+    if reason.startswith("authorization url could not be fetched due to weconnect failure"):
+        return "Volkswagen geeft deze koppeling geen aanmeldadres. Automatische laadbediening is niet beschikbaar."
     if any(marker in reason for marker in ("terms and conditions", "missing consent")):
         return "Volkswagen vraagt om toestemming of nieuwe voorwaarden. Log in bij myVolkswagen en bekijk de melding."
     if any(marker in reason for marker in ("throttled", "too many", "login.error.throttled")):
