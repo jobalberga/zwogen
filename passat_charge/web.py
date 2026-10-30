@@ -1,11 +1,13 @@
 import hashlib
 import hmac
+import logging
 import secrets
 from datetime import timedelta
 from functools import wraps
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.exceptions import HTTPException
 
 from .scheduler import PlanError
 
@@ -24,6 +26,15 @@ def create_app(scheduler, password, session_secret, *, secure_cookies=True):
 
     def is_authenticated():
         return session.get("authenticated", False) and hmac.compare_digest(session.get("auth_version", ""), auth_version)
+
+    @app.errorhandler(Exception)
+    def failed_request(error):
+        if isinstance(error, HTTPException):
+            return jsonify(error="Ongeldig verzoek."), error.code
+        # Backend exceptions may contain provider data. Do not expose them in
+        # API responses or request tracebacks.
+        logging.error("Web request failed (%s)", type(error).__name__)
+        return jsonify(error="Dienst tijdelijk niet beschikbaar. Controleer de status voor een nieuwe poging."), 503
 
     @app.before_request
     def protection():
@@ -56,29 +67,25 @@ def create_app(scheduler, password, session_secret, *, secure_cookies=True):
 
     @app.get("/healthz")
     def health():
-        return jsonify(ok=True, planner=scheduler.status()["worker_ok"])
+        return jsonify(ok=True, planner=scheduler.healthy())
 
     @app.route("/", methods=["GET", "POST"])
     def home():
         error = None
         code = 200
         if request.method == "POST":
-            now = scheduler.clock()
             bucket = hashlib.sha256((request.remote_addr or "unknown").encode()).hexdigest()
-            with scheduler.db() as db:
-                db.execute("DELETE FROM login_attempts WHERE at < ?", (now - 900,))
-                failures = db.execute("SELECT COUNT(*) FROM login_attempts WHERE bucket=?", (bucket,)).fetchone()[0]
-                if failures >= 5:
-                    error, code = "Te veel inlogpogingen. Probeer over 15 minuten opnieuw.", 429
-                elif check_password_hash(password_hash, request.form.get("password", "")):
-                    db.execute("DELETE FROM login_attempts WHERE bucket=?", (bucket,))
-                    session.clear()
-                    session.update(authenticated=True, auth_version=auth_version, csrf=secrets.token_urlsafe(32))
-                    session.permanent = True
-                    return redirect(url_for("home"))
-                else:
-                    db.execute("INSERT INTO login_attempts VALUES (?, ?)", (bucket, now))
-                    error, code = "Dit wachtwoord klopt niet.", 401
+            if not scheduler.allow_login(bucket):
+                error, code = "Te veel inlogpogingen. Probeer over 15 minuten opnieuw.", 429
+            elif check_password_hash(password_hash, request.form.get("password", "")):
+                scheduler.clear_login(bucket)
+                session.clear()
+                session.update(authenticated=True, auth_version=auth_version, csrf=secrets.token_urlsafe(32))
+                session.permanent = True
+                return redirect(url_for("home"))
+            else:
+                error, code = "Dit wachtwoord klopt niet.", 401
+
         return render_template("index.html", authenticated=is_authenticated(),
                                csrf=session["csrf"], error=error), code
 

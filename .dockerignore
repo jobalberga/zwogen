@@ -10,3 +10,9 @@ __pycache__
 *.sqlite3*
 api
 index.html
+infra
+tools
+.terraform
+*.tfstate*
+*.tfvars*
+*.tfplan

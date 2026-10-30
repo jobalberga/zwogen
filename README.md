@@ -4,17 +4,19 @@ Een privéwebapp voor een Volkswagen Passat GTE uit 2020. Sluit de laadkabel aan
 
 ## Wat werkt
 
-- De planner vraagt de auto het laden te pauzeren, bewaart de eenmalige opdracht in SQLite en vraagt op het eerstvolgende voorkomen van de gekozen tijd om te starten. De keuzelijst bevat tijden per halfuur, met 00:00 als standaard. De startdatum staat erbij. Een verstreken tijd wordt voor de volgende dag gepland. Een bestaande opdracht wordt op het opgeslagen tijdstip uitgevoerd.
-- De opdracht blijft bewaard bij een serverherstart. De telefoon mag dicht. De server moet blijven draaien; een slapende gratis host of een statische website voldoet niet.
+- De planner vraagt de auto het laden te pauzeren, bewaart de eenmalige opdracht in Firestore (cloudmodus) of SQLite (lokale modus) en vraagt op het eerstvolgende voorkomen van de gekozen tijd om te starten. De keuzelijst bevat tijden per halfuur, met 00:00 als standaard. De startdatum staat erbij. Een verstreken tijd wordt voor de volgende dag gepland. Een bestaande opdracht wordt op het opgeslagen tijdstip uitgevoerd.
+- De opdracht blijft bewaard bij een serverherstart. De telefoon mag dicht. In cloudmodus voeren opgeslagen taken het werk uit terwijl de services mogen slapen. In lokale modus moet de server blijven draaien. Een statische pagina alleen voert geen laadopdrachten uit.
 - De interface onderscheidt opdracht verzonden, pauze bevestigd, start bevestigd en fouten. Bevestiging vereist een VW-meting van ná het versturen van de opdracht. Onbekende en verouderde waarden worden niet als bevestiging gebruikt.
 - Annuleren schrapt de automatische start en hervat het laden niet. Er is maximaal één actieve opdracht. Een gemist venster van een uur verloopt en wordt nooit de volgende dag uitgevoerd.
 - Inloggen, sessiecookies, CSRF-bescherming en een aanhoudende limiet op mislukte inlogpogingen beschermen de bediening. De browser krijgt geen VW-wachtwoord, tokens of chassisnummer.
 
 De eerdere ZWO-generator in `index.html` en `api/generate.py` is behouden. Deze nieuwe server biedt die bestanden niet aan.
 
-## Alternatief zonder vaste serverhuur
+## Google Cloud: zonder vaste serverhuur
 
-Zie [het onderzoek naar serverloze hosting](SERVERLESS.md) voor de vergelijking van Cloudflare, Google Cloud en AWS. De voorkeursroute bij acceptatie van kleine gebruikskosten is Cloud Run met Cloud Tasks en Firestore. Die ombouw is nog niet uitgevoerd; de onderstaande installatiebestanden starten nog de bestaande serverversie.
+De serverloze uitvoering gebruikt Cloud Run, Cloud Tasks en Firestore, met een afgeschermde laadwerker en aparte geheime opslag. De implementatie en lokale tests staan klaar; er is nog niets op Google Cloud geïnstalleerd. Begin bij [de installatiehandleiding voor Google Cloud](GCP.md). Je hebt een eigen project met facturering nodig. Gebruikskosten zijn mogelijk.
+
+[Het hostingonderzoek](SERVERLESS.md) beschrijft de afweging. De NAS- en Render-configuraties hieronder blijven als lokale servervariant beschikbaar.
 
 ## Op je Synology NAS
 
@@ -61,7 +63,7 @@ set +a
 .venv/bin/python -m passat_charge
 ```
 
-`python -m passat_charge` start zowel de Waitress-webserver als de planner. Gebruik dit startcommando ook bij hosting; alleen `flask run` of een WSGI-import start de planner niet. De app start zonder VW-gegevens, maar toont dan duidelijk dat de auto niet gekoppeld is en weigert laadopdrachten. Een app-wachtwoord blijft verplicht. Voor lokaal HTTP-gebruik op thuiswifi of tijdens ontwikkeling kan `COOKIE_SECURE=0` worden gebruikt. Voor publieke hosting en HTTPS blijft dit `1`.
+`python -m passat_charge` start in de standaardmodus (`PASSAT_MODE=local`) zowel de Waitress-webserver als de planner. De cloudmodi `cloud-web` en `cloud-worker` gebruiken de Cloud Run-configuratie uit [GCP.md](GCP.md). Gebruik dit startcommando ook bij hosting; alleen `flask run` of een WSGI-import start de planner niet. De app start zonder VW-gegevens, maar toont dan duidelijk dat de auto niet gekoppeld is en weigert laadopdrachten. Een app-wachtwoord blijft verplicht. Voor lokaal HTTP-gebruik op thuiswifi of tijdens ontwikkeling kan `COOKIE_SECURE=0` worden gebruikt. Voor publieke hosting en HTTPS blijft dit `1`.
 
 ```sh
 .venv/bin/python -m unittest discover -v
@@ -78,4 +80,4 @@ Als laden vóór de geplande starttijd opnieuw wordt waargenomen, bijvoorbeeld n
 
 ## Huidige verificatie
 
-Lokale planning, webbediening en de adapter met bibliotheekobjecten worden geautomatiseerd getest. Een echt VW-account is nog niet gekoppeld, er zijn geen opdrachten naar jouw auto gestuurd en er is nog geen publieke hosting aangemaakt. De eerste echte laadtest en de productie-HTTPS-koppeling blijven onderdeel van ingebruikname.
+70 lokale tests controleren planning, webbediening, VW-bibliotheekobjecten, cloudtaakherstel en Firestore-opslag. Ook de containeropstart en Terraform-configuratie zijn lokaal gecontroleerd. Een echt VW-account is nog niet gekoppeld, er zijn geen opdrachten naar jouw auto gestuurd en er is nog geen publieke hosting aangemaakt. De eerste echte laadtest en de productie-HTTPS-koppeling blijven onderdeel van ingebruikname.

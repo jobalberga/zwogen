@@ -5,3 +5,10 @@ __pycache__/
 data/
 *.sqlite3*
 api/zwo_files.zip
+.terraform/
+*.tfstate*
+*.tfplan
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+.dev.vars*

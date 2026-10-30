@@ -49,7 +49,69 @@ def next_start(now, start_time="00:00"):
     raise ValueError("Geen geldige startdatum gevonden.")
 
 
-class Scheduler:
+class ChargeFlow:
+    """One bounded state-machine step, shared by local and cloud execution."""
+
+    def advance(self, plan, now):
+        if plan is None or plan["state"] not in ACTIVE:
+            return
+        if now > plan["deadline"]:
+            self._update(plan, "expired", error="Het startvenster is voorbij. Er wordt niet alsnog of morgen gestart.")
+            return
+        if plan["state"] in ("pending_stop", "confirm_stop", "scheduled") and now >= plan["due"]:
+            self._update(plan, "pending_start", attempts=0, next_action=0, error=None)
+
+        # Only a measurement newer than the command can confirm it.
+        confirmed = (self.snapshot.available and self.snapshot.measured_at is not None
+                     and plan["command_at"] is not None
+                     and self.snapshot.measured_at <= now + 60
+                     and self.snapshot.measured_at > plan["command_at"])
+        if plan["state"] == "confirm_stop":
+            if confirmed and self.snapshot.charging is False:
+                self._update(plan, "scheduled", error=None)
+            elif now - plan["command_at"] >= CONFIRM_SECONDS:
+                self._update(plan, "failed", error="VW bevestigt het pauzeren niet. Er is geen automatische start meer gepland. Controleer de VW-app.")
+            return
+        if plan["state"] == "confirm_start":
+            if confirmed and self.snapshot.charging is True:
+                self._update(plan, "started", error=None)
+            elif now - plan["command_at"] >= CONFIRM_SECONDS:
+                self._update(plan, "failed", error="De startopdracht is verzonden, maar de auto bevestigt het laden niet. Controleer de VW-app.")
+            return
+        if plan["state"] == "scheduled":
+            # Detect charging resumed by another timer or replugging. This
+            # is monitoring, not a physical guarantee when the car is offline.
+            if (self.snapshot.available and self.snapshot.charging is True
+                    and self.snapshot.measured_at is not None
+                    and self.snapshot.measured_at > plan["updated"]):
+                self._update(plan, "pending_stop", attempts=0, next_action=0)
+            else:
+                return
+        if plan["state"] not in ("pending_stop", "pending_start") or now < plan["next_action"]:
+            return
+        action = "stop" if plan["state"] == "pending_stop" else "start"
+        if plan["attempts"] >= MAX_ATTEMPTS:
+            self._update(plan, "failed", error="Het maximale aantal pogingen is bereikt. Controleer de laadstatus in de VW-app.")
+            return
+        # Persist command intent before sending. Recovery may re-send the
+        # same idempotent start/stop action; never a toggle.
+        attempts = plan["attempts"] + 1
+        self._update(plan, attempts=attempts, command_at=now, next_action=now + POLL_SECONDS)
+        try:
+            if not self.snapshot.available:
+                raise VehicleError("Volkswagen is niet bereikbaar. De opdracht wordt opnieuw geprobeerd.")
+            if action == "start" and self.snapshot.plugged is False:
+                raise VehicleError("De laadkabel is niet aangesloten. Sluit hem opnieuw aan.")
+            self.vehicle.command(action)
+            self._update(plan, "confirm_" + action, error=None)
+        except VehicleError as error:
+            if attempts >= MAX_ATTEMPTS:
+                self._update(plan, "failed", error=str(error) + " Controleer de VW-app; automatisch proberen is gestopt.")
+            else:
+                self._update(plan, error=str(error))
+
+
+class Scheduler(ChargeFlow):
     def __init__(self, database, vehicle, clock=time.time):
         self.database = str(database)
         self.vehicle = vehicle
@@ -172,62 +234,25 @@ class Scheduler:
             # Time may advance considerably during an authentication or HTTP call.
             now = self.clock()
             plan = self.latest()
-            if plan is None or plan["state"] not in ACTIVE:
-                return
-            if now > plan["deadline"]:
-                self._update(plan, "expired", error="Het startvenster is voorbij. Er wordt niet alsnog of morgen gestart.")
-                return
-            if plan["state"] in ("pending_stop", "confirm_stop", "scheduled") and now >= plan["due"]:
-                self._update(plan, "pending_start", attempts=0, next_action=0, error=None)
+            self.advance(plan, now)
 
-            # Only a measurement newer than the command can confirm it.
-            confirmed = (self.snapshot.available and self.snapshot.measured_at is not None
-                         and plan["command_at"] is not None
-                         and self.snapshot.measured_at <= now + 60
-                         and self.snapshot.measured_at > plan["command_at"])
-            if plan["state"] == "confirm_stop":
-                if confirmed and self.snapshot.charging is False:
-                    self._update(plan, "scheduled", error=None)
-                elif now - plan["command_at"] >= CONFIRM_SECONDS:
-                    self._update(plan, "failed", error="VW bevestigt het pauzeren niet. Er is geen automatische start meer gepland. Controleer de VW-app.")
-                return
-            if plan["state"] == "confirm_start":
-                if confirmed and self.snapshot.charging is True:
-                    self._update(plan, "started", error=None)
-                elif now - plan["command_at"] >= CONFIRM_SECONDS:
-                    self._update(plan, "failed", error="De startopdracht is verzonden, maar de auto bevestigt het laden niet. Controleer de VW-app.")
-                return
-            if plan["state"] == "scheduled":
-                # Detect charging resumed by another timer or replugging. This
-                # is monitoring, not a physical guarantee when the car is offline.
-                if (self.snapshot.available and self.snapshot.charging is True
-                        and self.snapshot.measured_at is not None
-                        and self.snapshot.measured_at > plan["updated"]):
-                    self._update(plan, "pending_stop", attempts=0, next_action=0)
-                else:
-                    return
-            if plan["state"] not in ("pending_stop", "pending_start") or now < plan["next_action"]:
-                return
-            action = "stop" if plan["state"] == "pending_stop" else "start"
-            if plan["attempts"] >= MAX_ATTEMPTS:
-                self._update(plan, "failed", error="Het maximale aantal pogingen is bereikt. Controleer de laadstatus in de VW-app.")
-                return
-            # Persist command intent before sending. Recovery may re-send the
-            # same idempotent start/stop action; never a toggle.
-            attempts = plan["attempts"] + 1
-            self._update(plan, attempts=attempts, command_at=now, next_action=now + POLL_SECONDS)
-            try:
-                if not self.snapshot.available:
-                    raise VehicleError("Volkswagen is niet bereikbaar. De opdracht wordt opnieuw geprobeerd.")
-                if action == "start" and self.snapshot.plugged is False:
-                    raise VehicleError("De laadkabel is niet aangesloten. Sluit hem opnieuw aan.")
-                self.vehicle.command(action)
-                self._update(plan, "confirm_" + action, error=None)
-            except VehicleError as error:
-                if attempts >= MAX_ATTEMPTS:
-                    self._update(plan, "failed", error=str(error) + " Controleer de VW-app; automatisch proberen is gestopt.")
-                else:
-                    self._update(plan, error=str(error))
+    def allow_login(self, bucket):
+        now = self.clock()
+        with self.db() as db:
+            db.execute("BEGIN IMMEDIATE")
+            db.execute("DELETE FROM login_attempts WHERE at < ?", (now - 900,))
+            count = db.execute("SELECT COUNT(*) FROM login_attempts WHERE bucket=?", (bucket,)).fetchone()[0]
+            if count >= 5:
+                return False
+            db.execute("INSERT INTO login_attempts VALUES (?, ?)", (bucket, now))
+            return True
+
+    def clear_login(self, bucket):
+        with self.db() as db:
+            db.execute("DELETE FROM login_attempts WHERE bucket=?", (bucket,))
+
+    def healthy(self):
+        return self.last_heartbeat is not None and self.clock() - self.last_heartbeat < 60
 
     def run(self):
         while not self.stop_event.is_set():

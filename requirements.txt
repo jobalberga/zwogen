@@ -3,3 +3,6 @@ waitress==3.0.2
 carconnectivity==0.11.11
 carconnectivity-connector-volkswagen==0.10.6
 tzdata==2026.6
+google-cloud-firestore==2.34.1
+google-cloud-tasks==2.26.0
+google-cloud-storage==3.17.1

@@ -13,6 +13,13 @@ from .web import create_app
 
 
 def main():
+    mode = os.environ.get("PASSAT_MODE", "local")
+    if mode in ("cloud-web", "cloud-worker"):
+        from .cloud_runtime import main as cloud_main
+        cloud_main(mode)
+        return
+    if mode != "local":
+        raise SystemExit("Onbekende uitvoermodus")
     os.umask(0o077)
     data = Path(os.environ.get("PASSAT_DATA_DIR", "data")).resolve()
     data.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,13 @@
+.gcloudignore
+.git
+.env
+.env.*
+.venv
+data
+**/__pycache__
+*.pyc
+*.sqlite3*
+infra
+tests
+api
+index.html

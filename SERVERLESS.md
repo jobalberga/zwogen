@@ -1,10 +1,10 @@
 # Hosting zonder voortdurend draaiende server
 
-Onderzocht op 30 oktober 2026 voor één Passat en één gebruiker. Er is niets gepubliceerd, geen cloudaccount aangemaakt en geen opdracht naar Volkswagen gestuurd. Dit document beschrijft een alternatief ontwerp; de huidige app gebruikt nog een voortdurend draaiende Python-server.
+Onderzocht op 30 oktober 2026 voor één Passat en één gebruiker. Er is niets gepubliceerd, geen cloudaccount aangemaakt en geen opdracht naar Volkswagen gestuurd. Dit document beschrijft de hostingkeuze. De cloudombouw is inmiddels geïmplementeerd en lokaal getest; zie [GCP.md](GCP.md). De eerste cloudinstallatie en VW-test blijven nog nodig.
 
 ## Advies
 
-Uitgangspunt: geen vast serverabonnement; een factureringsaccount en eventuele kleine gebruikskosten zijn toegestaan. Daarmee is **Google Cloud Run + Cloud Tasks + Firestore de voorkeursroute**. De bestaande Python-koppeling kan behouden blijven, wat de noodzaak om VW-authenticatie opnieuw te bouwen beperkt. De app moet nog worden omgebouwd en de volledige actuele prijs moet vóór het aanmaken van diensten worden gecontroleerd.
+Uitgangspunt: geen vast serverabonnement; een factureringsaccount en eventuele kleine gebruikskosten zijn toegestaan. Daarmee is **Google Cloud Run + Cloud Tasks + Firestore de voorkeursroute**. De bestaande Python-koppeling kan behouden blijven, wat de noodzaak om VW-authenticatie opnieuw te bouwen beperkt. De ombouw staat nu klaar, met de lokale testgrenzen beschreven in GCP.md. De volledige actuele prijs moet vóór het aanmaken van diensten worden gecontroleerd.
 
 ## Vergelijking
 

@@ -42,7 +42,7 @@ function render(data) {
     message = "Volkswagen-account nog niet gekoppeld.";
     label = "Auto nog niet gekoppeld";
   } else if (!data.worker_ok) {
-    message = "Planner niet bereikbaar. Controleer of de server actief is.";
+    message = "Planner niet bereikbaar. Probeer het later opnieuw.";
     label = "Planner niet beschikbaar"; warning = true;
   } else if (!v.available) {
     message = v.message; label = "Wachten op Volkswagen";
@@ -64,7 +64,7 @@ function render(data) {
     if (active) {
       [message, label] = descriptions[p.state];
       if (p.error) { message = p.error + " Nieuwe poging volgt."; warning = true; }
-      if (!data.worker_ok) { message = "Planning opgeslagen, maar planner niet bereikbaar. Controleer de server en de VW-app."; warning = true; }
+      if (!data.worker_ok) { message = "Planning opgeslagen, maar uitvoering niet bevestigd. Controleer de VW-app."; warning = true; }
       else if (!v.available) { message += " Actuele VW-status niet beschikbaar."; warning = true; }
     } else if (["failed", "expired"].includes(p.state)) {
       message = p.error; warning = true;
