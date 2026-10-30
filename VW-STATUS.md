@@ -38,6 +38,8 @@ De volgende openbare InCharge-integraties zijn gecontroleerd, maar bieden geen a
 
 De naam van de leverancier of de privacy-/toestemmingstekst bij de autokoppeling kan de juiste route identificeren. De leverancier, beschikbaarheid voor persoonlijk gebruik, kosten en ondersteuning voor een eenmalige gekozen starttijd zijn nog niet vastgesteld. De Vattenfall-voertuigkoppeling is nog niet in deze website geïntegreerd.
 
+Het [vervolgonderzoek naar andere voertuig-API's](VW-ALTERNATIEVEN.md) behandelt Smartcar, Enode en de experimentele legacy Car-Net-route. Smartcar heeft een beschreven ontwikkelaarsroute; Enode vereist aparte productie-toegang. Voor geen van beide zijn de prijs en laadbediening van deze Nederlandse Passat GTE uit 2020 al bevestigd.
+
 ## Achtergrondtaken pauzeren
 
 Voer in je eigen Cloud Shell uit, met de project-ID van de installatie:

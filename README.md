@@ -2,6 +2,8 @@
 
 **VW-koppeling momenteel geblokkeerd.** De website draait, maar Volkswagen weigert de eerste aanmeldstap van de gebruikte onofficiële connector met HTTP 403. Automatisch laden is hierdoor nog niet bruikbaar. Zie [de vastgestelde blokkade en het pauzeren van achtergrondtaken](VW-STATUS.md).
 
+Het [onderzoek naar alternatieve voertuig-API's](VW-ALTERNATIEVEN.md) beschrijft Smartcar, Enode en de resterende controles op ondersteuning en kosten.
+
 Een privéwebapp voor een Volkswagen Passat GTE uit 2020, bedoeld om via Volkswagen een **eenmalige laadstart op een gekozen tijd, in Nederlandse tijd** te plannen zonder slimme laadpaal. De interface werkt op een telefoon en kan aan het beginscherm worden toegevoegd. De huidige blokkade verhindert de voertuigbediening.
 
 ## Geïmplementeerd en lokaal getest
