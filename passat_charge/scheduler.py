@@ -1,6 +1,7 @@
 """Durable, single-vehicle one-shot scheduling; all timestamps are UTC epochs."""
 
 import logging
+import re
 import sqlite3
 import threading
 import time
@@ -25,10 +26,27 @@ class PlanError(Exception):
 
 
 def next_midnight(now):
+    return next_start(now, "00:00")
+
+
+def next_start(now, start_time="00:00"):
+    if not isinstance(start_time, str) or not re.fullmatch(r"(?:[01][0-9]|2[0-3]):(?:00|30)", start_time):
+        raise ValueError("Kies een starttijd uit de lijst.")
     local = datetime.fromtimestamp(now, ZONE)
-    # Advance the local calendar date, not a fixed number of seconds: a day
-    # around the DST transition can contain 23 or 25 hours.
-    return (local + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    hour, minute = map(int, start_time.split(":"))
+    for offset in range(3):
+        wall = (local + timedelta(days=offset)).replace(hour=hour, minute=minute, second=0, microsecond=0)
+        candidates = []
+        for fold in (0, 1):
+            stamp = wall.replace(fold=fold).timestamp()
+            restored = datetime.fromtimestamp(stamp, ZONE)
+            # Skip nonexistent times during the spring clock change. During
+            # the autumn change select the first occurrence still in the future.
+            if restored.replace(tzinfo=None) == wall.replace(tzinfo=None) and stamp > now:
+                candidates.append(stamp)
+        if candidates:
+            return min(candidates)
+    raise ValueError("Geen geldige startdatum gevonden.")
 
 
 class Scheduler:
@@ -84,10 +102,11 @@ class Scheduler:
         if not self.lock.acquire(blocking=False):
             raise PlanError("De auto verwerkt nog een opdracht. Probeer het zo nog eens.")
 
-    def arm(self):
+    def arm(self, start_time="00:00"):
         self._acquire()
         try:
             now = self.clock()
+            due = next_start(now, start_time)
             if not self.vehicle.configured:
                 raise PlanError("Koppel eerst je Volkswagen voordat je laden inplant.")
             if self.last_heartbeat is None or now - self.last_heartbeat > 60:
@@ -99,7 +118,6 @@ class Scheduler:
                 raise PlanError("Sluit eerst de laadkabel aan en wacht op bevestiging van de auto.")
             if snapshot.measured_at is None or not -60 <= now - snapshot.measured_at <= 900:
                 raise PlanError("De laadstatus is te oud. Open de VW-app om de auto te verversen.")
-            due = next_midnight(now)
             with self.db() as db:
                 try:
                     db.execute("""INSERT INTO plans (id, due, deadline, state, created, updated)
@@ -128,6 +146,9 @@ class Scheduler:
         worker_ok = self.last_heartbeat is not None and now - self.last_heartbeat < 60
         return {
             "now": now, "target": next_midnight(now), "timezone": "Europe/Amsterdam",
+            "start_times": [{"value": value, "due": next_start(now, value)}
+                            for hour in range(24) for minute in (0, 30)
+                            for value in (f"{hour:02d}:{minute:02d}",)],
             "configured": self.vehicle.configured, "worker_ok": worker_ok,
             "busy": self.lock.locked(), "vehicle": self.snapshot.to_dict(),
             "last_refresh": self.last_refresh, "plan": self.latest(),

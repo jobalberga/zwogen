@@ -8,6 +8,7 @@ let state = null;
 let sending = false;
 let loading = false;
 let connected = false;
+let selectedTime = "00:00";
 
 function text(id, value) { $(id).textContent = value; }
 function render(data) {
@@ -18,9 +19,13 @@ function render(data) {
   const fresh = v.measured_at !== null && data.now - v.measured_at >= -60 && data.now - v.measured_at <= 900;
   const refreshed = data.last_refresh !== null && data.now - data.last_refresh <= 300;
   const canPlan = connected && !sending && !active && !data.busy && data.configured && data.worker_ok && v.available && fresh && refreshed && v.plugged === true;
-  const target = active ? p.due : data.target;
+  const target = active ? p.due : (data.start_times.find(item => item.value === selectedTime)?.due ?? data.target);
+  const chosenTime = active ? time.format(new Date(target * 1000)) : selectedTime;
   text("today", day.format(new Date(data.now * 1000)));
-  text("target-time", time.format(new Date(target * 1000)));
+  $("start-time").value = chosenTime;
+  $("start-time").disabled = Boolean(active || sending);
+  text("before-time", "Tot " + chosenTime);
+  text("after-time", "Vanaf " + chosenTime);
   text("plan-subtitle", day.format(new Date(target * 1000)));
   text("battery", v.battery === null ? "—" : String(Math.round(v.battery)));
   const percent = document.createElement("span"); percent.textContent = "%"; $("battery").append(percent);
@@ -30,8 +35,8 @@ function render(data) {
   $("vehicle-dot").classList.toggle("online", v.available && fresh && refreshed && connected);
   text("updated", v.measured_at === null ? "" : "Auto: " + time.format(new Date(v.measured_at * 1000)));
 
-  let message = "De app vraagt het laden nu te pauzeren en om 00:00 te starten.";
-  let label = "Eenmalig laden vanaf 00:00";
+  let message = "De app vraagt het laden nu te pauzeren en om " + chosenTime + " te starten.";
+  let label = "Eenmalig starten om " + chosenTime;
   let warning = false;
   if (!data.configured) {
     message = "Volkswagen-account nog niet gekoppeld.";
@@ -97,14 +102,14 @@ async function refresh() {
   } finally { loading = false; }
 }
 
-async function action(path) {
+async function action(path, payload) {
   if (sending) return;
   sending = true;
   $("action-result").hidden = true;
   if (state) render(state);
   try {
     // Never automatically retry a timed-out POST; its result may already exist.
-    const response = await fetch(path, { method: "POST", headers: { "X-CSRF-Token": csrf }, signal: AbortSignal.timeout(12000) });
+    const response = await fetch(path, { method: "POST", headers: { "X-CSRF-Token": csrf, "Content-Type": "application/json" }, body: payload === undefined ? undefined : JSON.stringify(payload), signal: AbortSignal.timeout(12000) });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Opdracht mislukt.");
   } catch (error) {
@@ -118,7 +123,11 @@ async function action(path) {
   }
 }
 
-$("plan-button").addEventListener("click", () => action("/api/plan"));
+$("start-time").addEventListener("change", () => {
+  selectedTime = $("start-time").value;
+  if (state) render(state);
+});
+$("plan-button").addEventListener("click", () => action("/api/plan", { start_time: selectedTime }));
 $("cancel-button").addEventListener("click", () => {
   const plan = state?.plan;
   if (plan && window.confirm("Planning annuleren? Het laden wordt niet hervat. Hervat zo nodig via de VW-app.")) {

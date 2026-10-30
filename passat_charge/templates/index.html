@@ -31,7 +31,7 @@
     <main class="login-layout">
       <div class="login-intro">
         <h1>Passat laden</h1>
-        <p>Eenmalig laden vanaf 00:00 uur.</p>
+        <p>Kies een tijd voor een eenmalige laadopdracht.</p>
         <div class="login-time" aria-hidden="true">00<span>:</span>00<span class="time-spark">↯</span></div>
       </div>
       <section class="login-card">
@@ -66,10 +66,10 @@
 
         <section class="plan-card" aria-labelledby="plan-heading">
           <div class="plan-top"><span class="section-kicker">PLANNING</span><span class="once-badge">EENMALIG</span></div>
-          <h2 id="plan-heading">Starttijd</h2>
+          <h2 id="plan-heading"><label for="start-time">Starten om</label></h2>
           <p class="plan-subtitle" id="plan-subtitle">Komende nacht</p>
-          <div class="target-time"><span id="target-time">00:00</span><span class="time-unit">uur</span><span class="target-icon" aria-hidden="true">↯</span></div>
-          <div class="time-window" aria-hidden="true"><div class="time-window-track"><span class="peak-track"></span><span class="window-marker"></span><span class="calm-track"></span></div><div class="time-window-labels"><span>Tot 00:00</span><span class="calm-label">Vanaf 00:00</span></div></div>
+          <div class="target-time"><select id="start-time" class="start-time">{% for hour in range(24) %}{% for minute in (0, 30) %}<option value="{{ '%02d:%02d'|format(hour, minute) }}">{{ '%02d:%02d'|format(hour, minute) }}</option>{% endfor %}{% endfor %}</select><span class="time-unit">uur</span></div>
+          <div class="time-window" aria-hidden="true"><div class="time-window-track"><span class="peak-track"></span><span class="window-marker"></span><span class="calm-track"></span></div><div class="time-window-labels"><span id="before-time">Tot 00:00</span><span class="calm-label" id="after-time">Vanaf 00:00</span></div></div>
           <div class="plan-message" id="plan-message" aria-live="polite"><span class="message-icon" aria-hidden="true">i</span><p id="plan-message-text">Laadstatus ophalen…</p></div>
           <button class="primary plan-button" id="plan-button" type="button" disabled><span id="button-label">Laadstatus ophalen…</span><span aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></svg></span></button>
           <button class="cancel-button" id="cancel-button" type="button" hidden>Planning annuleren</button>
@@ -78,7 +78,7 @@
         </section>
       </div>
 
-      <details class="good-to-know"><summary>Over de planning <span aria-hidden="true">+</span></summary><div><p>Sluit de laadkabel aan. De app vraagt Volkswagen het laden te pauzeren en vanaf 00:00 weer te starten. De getoonde datum is de startdatum. Een nieuwe planning kiest altijd de eerstvolgende middernacht, ook als je na 00:00 plant. De opdracht blijft actief als je deze pagina sluit.</p><p>De auto en de server moeten bereikbaar blijven. VW kan de opdracht vertraagd verwerken. Bij een verbroken verbinding kan deze app het laden niet tegenhouden.</p><p>Schakel andere laad- en vertrektimers uit. De status wordt ongeveer elke drie minuten gecontroleerd. Een opdracht is pas bevestigd na een nieuwe meting van de auto.</p><p>Annuleren verwijdert de geplande start en hervat het laden niet. Een verlopen opdracht wordt niet een nacht later uitgevoerd.</p></div></details>
+      <details class="good-to-know"><summary>Over de planning <span aria-hidden="true">+</span></summary><div><p>Sluit de laadkabel aan en kies een starttijd. De app vraagt Volkswagen het laden te pauzeren en op de gekozen tijd te starten. Is die tijd vandaag voorbij, dan wordt de volgende dag gekozen. De startdatum staat boven de keuzelijst. De opdracht blijft actief als je deze pagina sluit.</p><p>Tijden zijn Nederlandse tijd. Bij de overgang naar zomertijd wordt een niet-bestaande tijd overgeslagen naar de volgende dag. Bij wintertijd wordt het eerstvolgende voorkomen van de gekozen tijd gebruikt.</p><p>De auto en de server moeten bereikbaar blijven. VW kan de opdracht vertraagd verwerken. Bij een verbroken verbinding kan deze app het laden niet tegenhouden.</p><p>Schakel andere laad- en vertrektimers uit. De status wordt ongeveer elke drie minuten gecontroleerd. Een opdracht is pas bevestigd na een nieuwe meting van de auto.</p><p>Een actieve starttijd kun je wijzigen door de planning eerst te annuleren. Annuleren hervat het laden niet. Een verlopen opdracht wordt niet een dag later uitgevoerd.</p></div></details>
     </main>
     {% endif %}
   </div>

@@ -26,3 +26,24 @@
 .car-visual--photo .visual-caption { margin-top: 14px; }
 
 .good-to-know { margin: 24px 0 28px; }
+
+.start-time {
+  font: inherit;
+  font-size: clamp(48px, 6vw, 70px);
+  letter-spacing: -2px;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  color-scheme: light;
+  color: #17251d;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #9cad94;
+  border-radius: 0;
+  padding: 0 8px 4px 0;
+  min-width: 0;
+  max-width: 100%;
+  cursor: pointer;
+}
+.start-time option { font-size: 18px; letter-spacing: normal; background: #eaf0e5; }
+.start-time:disabled { opacity: 1; cursor: default; }
+.start-time:focus-visible { outline: 2px solid #29472d; outline-offset: 4px; }

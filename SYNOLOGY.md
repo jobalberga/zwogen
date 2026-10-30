@@ -6,7 +6,7 @@ Dit is de installatie voor gebruik op je thuiswifi, zonder betaald hostingabonne
 
 Open DSM → **Package Center** en zoek **Container Manager**. Als dat pakket beschikbaar is, kan deze installatie worden gebruikt. Het image ondersteunt zowel ARM64 als x86-64: op de DS223j wordt de ARM64-versie van Python gebruikt. Ondersteuning en de geïnstalleerde DSM-versie moeten op je eigen NAS worden bevestigd; de app is nog niet op jouw NAS getest.
 
-Container Manager en de app gebruiken extra geheugen en processorcapaciteit. Voor de draaiende app is een limiet van 384 MB ingesteld. Het bouwen vraagt tijdelijk extra ruimte en capaciteit. Draai de NAS niet op een schema waarbij hij voor middernacht wordt uitgeschakeld.
+Container Manager en de app gebruiken extra geheugen en processorcapaciteit. Voor de draaiende app is een limiet van 384 MB ingesteld. Het bouwen vraagt tijdelijk extra ruimte en capaciteit. Draai de NAS niet op een schema waarbij hij voor de gekozen starttijd wordt uitgeschakeld.
 
 ## Bestanden plaatsen
 
@@ -31,7 +31,7 @@ Laat de enkele aanhalingstekens om de waarden staan. De meegeleverde configurati
 4. Wacht tot de bouw klaar is en de container draait. Het image wordt lokaal op de NAS gebouwd; de eerste keer kan dit enkele minuten duren.
 5. Open op je telefoon, verbonden met je thuiswifi: `http://IP-ADRES-VAN-JE-NAS:18080`. Vervang het adres door het lokale IP-adres dat DSM voor de NAS toont. Log in met het gekozen app-wachtwoord.
 
-Daarna controleer je de echte accustand en de VW-meettijd. Sluit de laadkabel aan en maak een eenmalige planning voor 00:00. Controleer de eerste keer ook in de VW-app dat de auto het pauzeren bevestigt. De fysieke VW-koppeling is pas na die controle en de eerste start om middernacht getest.
+Daarna controleer je de echte accustand en de VW-meettijd. Sluit de laadkabel aan en kies bij **Starten om** een tijd en maak een eenmalige planning. Controleer de eerste keer ook in de VW-app dat de auto het pauzeren bevestigt. De fysieke VW-koppeling is pas na die controle en de eerste start op de gekozen tijd getest.
 
 Deze configuratie is bedoeld voor thuiswifi. De router hoeft hiervoor niet te worden aangepast. Voor toegang buitenshuis kan later een bestaande VPN of een HTTPS-reverse-proxy worden gebruikt; Synology QuickConnect alleen is geen gegarandeerde route naar deze containerpoort.
 
@@ -52,4 +52,4 @@ Een update gebruikt hetzelfde commando nadat je de nieuwe projectbestanden hebt 
 
 ## Wat is getest
 
-De container is lokaal op x86-64 gebouwd en gestart. Inloggen via HTTP, de gebruiker zonder rootrechten, de permanente opslag, het behoud van een opdracht na herstart en de meegeleverde Nederlandse tijdzonegegevens zijn gecontroleerd. Alle 35 bestaande app-tests slagen. Voor ARM64 is gecontroleerd dat alle vereiste pakketten als kant-en-klaar pakket beschikbaar zijn. Uitvoeren op ARM64, de beschikbaarheid van Container Manager op jouw DSM en de koppeling met jouw Passat moeten op de NAS nog worden bevestigd.
+De container is lokaal op x86-64 gebouwd en gestart. Inloggen via HTTP, de gebruiker zonder rootrechten, de permanente opslag, het behoud van een opdracht na herstart en de meegeleverde Nederlandse tijdzonegegevens zijn gecontroleerd. Alle 40 app-tests slagen. Voor ARM64 is gecontroleerd dat alle vereiste pakketten als kant-en-klaar pakket beschikbaar zijn. Uitvoeren op ARM64, de beschikbaarheid van Container Manager op jouw DSM en de koppeling met jouw Passat moeten op de NAS nog worden bevestigd.

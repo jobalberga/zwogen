@@ -1,10 +1,10 @@
 # Na de spits
 
-Een privéwebapp voor een Volkswagen Passat GTE uit 2020. Sluit de laadkabel aan en plan met één knop een **eenmalige start vanaf 00:00 uur Nederlandse tijd, in de komende nacht**. De app bedient de auto via Volkswagen; een slimme laadpaal is niet nodig. De interface werkt op een telefoon en kan aan het beginscherm worden toegevoegd.
+Een privéwebapp voor een Volkswagen Passat GTE uit 2020. Sluit de laadkabel aan, kies bij **Starten om** een tijd en plan een **eenmalige start op een gekozen tijd, in Nederlandse tijd**. De app bedient de auto via Volkswagen; een slimme laadpaal is niet nodig. De interface werkt op een telefoon en kan aan het beginscherm worden toegevoegd.
 
 ## Wat werkt
 
-- De planner vraagt de auto het laden te pauzeren, bewaart de eenmalige opdracht in SQLite en vraagt vanaf de eerstvolgende middernacht om te starten. De startdatum staat bij de starttijd. Ook een nieuwe opdracht die na 00:00 wordt gemaakt, kiest de eerstvolgende toekomstige middernacht. Een bestaande opdracht wordt op het opgeslagen tijdstip uitgevoerd.
+- De planner vraagt de auto het laden te pauzeren, bewaart de eenmalige opdracht in SQLite en vraagt op het eerstvolgende voorkomen van de gekozen tijd om te starten. De keuzelijst bevat tijden per halfuur, met 00:00 als standaard. De startdatum staat erbij. Een verstreken tijd wordt voor de volgende dag gepland. Een bestaande opdracht wordt op het opgeslagen tijdstip uitgevoerd.
 - De opdracht blijft bewaard bij een serverherstart. De telefoon mag dicht. De server moet blijven draaien; een slapende gratis host of een statische website voldoet niet.
 - De interface onderscheidt opdracht verzonden, pauze bevestigd, start bevestigd en fouten. Bevestiging vereist een VW-meting van ná het versturen van de opdracht. Onbekende en verouderde waarden worden niet als bevestiging gebruikt.
 - Annuleren schrapt de automatische start en hervat het laden niet. Er is maximaal één actieve opdracht. Een gemist venster van een uur verloopt en wordt nooit de volgende dag uitgevoerd.
@@ -68,9 +68,9 @@ De tests gebruiken een vervangende auto en testen onder meer tijdzones, zomer- e
 
 ## Grenzen van de planning
 
-De server controleert VW-status ongeveer elke drie minuten; een startaanvraag gaat vanaf 00:00 uit. Het tijdstip volgt de Nederlandse kalender en houdt rekening met zomer- en wintertijd. VW en de auto kunnen die aanvraag vertraagd verwerken. Zonder netwerk of werkende VW-dienst kan de app de auto niet fysiek tegenhouden of inschakelen. Schakel concurrerende laad-/vertrektimers uit. De planner probeert een mislukte opdracht maximaal drie keer met drie minuten tussenruimte. Na tien minuten zonder nieuwe bevestigende meting wordt de opdracht als mislukt getoond; dat betekent niet dat een eerder verzonden commando onmogelijk nog aankomt.
+De server controleert VW-status ongeveer elke drie minuten; een startaanvraag gaat vanaf de gekozen tijd uit. Het tijdstip volgt de Nederlandse kalender en houdt rekening met zomer- en wintertijd. Een niet-bestaande tijd bij de overgang naar zomertijd wordt voor de volgende dag gekozen. Bij wintertijd telt het eerstvolgende toekomstige voorkomen. VW en de auto kunnen die aanvraag vertraagd verwerken. Zonder netwerk of werkende VW-dienst kan de app de auto niet fysiek tegenhouden of inschakelen. Schakel concurrerende laad-/vertrektimers uit. De planner probeert een mislukte opdracht maximaal drie keer met drie minuten tussenruimte. Na tien minuten zonder nieuwe bevestigende meting wordt de opdracht als mislukt getoond; dat betekent niet dat een eerder verzonden commando onmogelijk nog aankomt.
 
-Als laden vóór de geplande middernacht opnieuw wordt waargenomen, bijvoorbeeld na opnieuw inpluggen, vraagt de actieve planner opnieuw een pauze aan. Als pauzeren niet bevestigd wordt, controleer de VW-app: de website kan niet garanderen dat er vóór de starttijd geen stroom wordt afgenomen. Een stilgevallen server voert geen opdrachten uit; de website waarschuwt bij een ontbrekende planner of verbinding.
+Als laden vóór de geplande starttijd opnieuw wordt waargenomen, bijvoorbeeld na opnieuw inpluggen, vraagt de actieve planner opnieuw een pauze aan. Als pauzeren niet bevestigd wordt, controleer de VW-app: de website kan niet garanderen dat er vóór de starttijd geen stroom wordt afgenomen. Een stilgevallen server voert geen opdrachten uit; de website waarschuwt bij een ontbrekende planner of verbinding.
 
 ## Huidige verificatie
 

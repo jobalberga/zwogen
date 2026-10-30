@@ -2,7 +2,7 @@ import unittest
 from dataclasses import replace
 from datetime import datetime, timezone
 
-from passat_charge.scheduler import MAX_ATTEMPTS, PlanError, Scheduler, ZONE, next_midnight
+from passat_charge.scheduler import MAX_ATTEMPTS, PlanError, Scheduler, ZONE, next_midnight, next_start
 from tests.helpers import Clock, Fixture
 
 
@@ -187,6 +187,25 @@ class SchedulerTests(Fixture, unittest.TestCase):
 
 
 class TimezoneTests(unittest.TestCase):
+    def test_selected_times_and_dst_edges(self):
+        cases = (
+            ("2026-10-29T16:00+01:00", "22:30", "2026-10-29T21:30+00:00"),
+            ("2026-10-29T16:00+01:00", "12:00", "2026-10-30T11:00+00:00"),
+            ("2026-10-29T22:30+01:00", "22:30", "2026-10-30T21:30+00:00"),
+            ("2026-03-29T00:30+01:00", "02:30", "2026-03-30T00:30+00:00"),
+            ("2026-10-25T01:30+02:00", "02:30", "2026-10-25T00:30+00:00"),
+            ("2026-10-25T02:45+02:00", "02:30", "2026-10-25T01:30+00:00"),
+        )
+        for now, choice, expected in cases:
+            with self.subTest(now=now, choice=choice):
+                self.assertEqual(next_start(datetime.fromisoformat(now).timestamp(), choice),
+                                 datetime.fromisoformat(expected).timestamp())
+
+    def test_invalid_start_times_are_rejected(self):
+        for value in (None, 1900, "24:00", "2:00", "02:15", "23:60", "00:00 ", "tomorrow"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                next_start(0, value)
+
     def test_midnight_in_winter_summer_and_dst_transition_days(self):
         cases = (
             ("2026-01-20T12:00", "2026-01-20T23:00+00:00"),

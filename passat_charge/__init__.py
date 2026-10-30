@@ -1,1 +1,1 @@
-"""Eenmalig laden vanaf middernacht."""
+"""Eenmalig laden op een gekozen tijd."""

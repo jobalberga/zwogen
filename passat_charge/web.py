@@ -95,8 +95,13 @@ def create_app(scheduler, password, session_secret, *, secure_cookies=True):
     @app.post("/api/plan")
     @authenticated
     def plan():
+        data = request.get_json(silent=True) if request.content_length else {}
+        if not isinstance(data, dict):
+            return jsonify(error="Ongeldige opdracht."), 400
         try:
-            return jsonify(plan=scheduler.arm()), 201
+            return jsonify(plan=scheduler.arm(data.get("start_time", "00:00"))), 201
+        except ValueError as error:
+            return jsonify(error=str(error)), 400
         except PlanError as error:
             return jsonify(error=str(error)), 409
 
