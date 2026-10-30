@@ -42,7 +42,7 @@ class FakeOpener:
         if "/connections?" in request.full_url:
             return Response({"data": self.rows, "meta": {"totalCount": len(self.rows)}})
         code = request.full_url.rsplit("/", 1)[-1]
-        values = {"tractionbattery-stateofcharge": 43, "charge-detailedchargingstatus": "NOT_CHARGING",
+        values = {"tractionbattery-stateofcharge": 43, "charge-ischarging": False,
                   "charge-ischargingcableconnected": False}
         return Response(self.signals.get(code, {"data": {"attributes": {"code": code, "status": {"value": "SUCCESS"},
                                                                       "body": {"value": values[code]}},
@@ -60,16 +60,40 @@ class SmartcarDiagnosisTests(unittest.TestCase):
         self.assertEqual(json.loads(token_request.data), {"client_id": "client_test", "client_secret": "private-secret",
                                                          "grant_type": "client_credentials"})
         self.assertEqual(parse_qs(urlsplit(opener.calls[1].full_url).query), {"filter[vehicle.mode]": ["live"]})
-        self.assertEqual(len(opener.calls), 5)
+        self.assertEqual(len(opener.calls), 4)
         self.assertTrue(all(request.get_method() == "GET" for request in opener.calls[1:]))
         for request in opener.calls[2:]:
             self.assertEqual(request.get_header("Sc-user-id"), USER)
         with contextlib.redirect_stdout(io.StringIO()) as output:
             diagnose.print_report(report)
-        self.assertIn("43%", output.getvalue())
+        self.assertIn("Niet aan het laden", output.getvalue())
+        self.assertNotIn("tractionbattery-stateofcharge", " ".join(request.full_url for request in opener.calls))
+        self.assertNotIn("charge-detailedchargingstatus", " ".join(request.full_url for request in opener.calls))
         self.assertIn("Losgekoppeld", output.getvalue())
         for secret in ("client_test", "private-secret", "private-token", VEHICLE, USER):
             self.assertNotIn(secret, output.getvalue() + json.dumps(report))
+
+    def test_core_signals_can_be_read_without_battery_permission(self):
+        opener = FakeOpener(permissions=["read_charge", "control_charge"])
+        report = diagnose.probe("client_test", "private-secret", opener=opener)
+        self.assertFalse(report["permissions"]["read_battery"])
+        self.assertEqual(len(opener.calls), 4)
+        self.assertEqual(report["signals"]["charge-ischarging"]["value"], "Niet aan het laden")
+        self.assertNotIn("tractionbattery-stateofcharge", report["signals"])
+
+    def test_battery_is_only_requested_when_explicitly_enabled(self):
+        opener = FakeOpener()
+        report = diagnose.probe("client_test", "private-secret", opener=opener, include_battery=True)
+        self.assertEqual(len(opener.calls), 5)
+        self.assertEqual(report["signals"]["tractionbattery-stateofcharge"]["value"], "43%")
+
+    def test_unknown_boolean_status_is_not_reported_as_stopped(self):
+        for value, expected in ((True, "Aan het laden"), (False, "Niet aan het laden"),
+                                (None, "Onbekend"), ("false", "Onbekend"), (0, "Onbekend")):
+            with self.subTest(value=value):
+                result = diagnose.summarize_signal({"data": {"attributes": {"code": "charge-ischarging",
+                    "status": {"value": "SUCCESS"}, "body": {"value": value}}}}, "charge-ischarging")
+                self.assertEqual(result["value"], expected)
 
     def test_absent_permissions_skip_signal_calls_without_claiming_a_paywall(self):
         opener = FakeOpener(permissions=[])

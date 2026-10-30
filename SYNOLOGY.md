@@ -1,5 +1,7 @@
 # Installatie op Synology
 
+**De gebruikte VW-koppeling wordt momenteel geweigerd.** Deze NAS-installatie verhelpt dat niet. Zie eerst [de VW-status](VW-STATUS.md). Dit document beschrijft onze eigen webapp; voor de afweging met Home Assistant, zie [Home Assistant en gratis laadbediening](HOME-ASSISTANT.md).
+
 Dit is de installatie voor gebruik op je thuiswifi, zonder betaald hostingabonnement. De NAS moet aan blijven en internettoegang hebben om Volkswagen te bereiken. Er is geen koppeling met de Apple TV nodig.
 
 ## Eerst controleren op de DS223j

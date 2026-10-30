@@ -2,6 +2,8 @@
 
 Onderzocht op 30 oktober 2026 voor één Nederlandse Volkswagen Passat GTE uit 2020, met een gewone stopcontactlader. Doel: via een telefoon een eenmalige laadstart kiezen, standaard 00:00, zonder een vaste serverhuur of nieuwe laadpaal.
 
+**Actuele budgetkeuze:** geen maandabonnement voor laadbediening. De betaalde Smartcar-route is daarmee geen voorkeursoplossing. Het account staat op Free. Het [Home Assistant-onderzoek](HOME-ASSISTANT.md) beschrijft waarom een andere planner de ontbrekende VW-toegang niet opheft en welke gratis routes nog niet zijn bewezen. Het onderstaande commerciële onderzoek blijft achtergrondinformatie.
+
 ## Resultaat
 
 Er zijn commerciële voertuig-API's waarmee een eigen planner technisch mogelijk kan zijn. Smartcar is een concrete kandidaat met een beschreven ontwikkelaarsroute. Enode is eveneens een kandidaat, maar toegang tot echte voertuigen moet eerst worden goedgekeurd. De eigenaar heeft inmiddels een geslaagde Volkswagen-koppeling bij Smartcar laten zien. Het dashboard meldt nog **No permissions** voor laadgegevens en **Control EV Charge** staat uit. Zie [de Smartcar-instructies en veilige leescontrole](SMARTCAR.md) voor het vervolg. Er is nog geen laadstart/stop voor deze auto bevestigd, geen nieuwe voertuigadapter in de website geactiveerd en geen fysieke laadproef uitgevoerd. Het getoonde prijsblad biedt nieuwe kosteninformatie; ook die staat in de Smartcar-instructies.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Read Smartcar v3 connection permissions and three charging signals."""
+"""Read Smartcar v3 permissions, charging/cable status and optionally battery."""
 
+import argparse
 from datetime import datetime, timezone
 import getpass
 import json
@@ -17,7 +18,7 @@ API_URL = "https://vehicle.api.smartcar.com/v3"
 PERMISSIONS = ("read_battery", "read_charge", "control_charge")
 SIGNALS = {
     "tractionbattery-stateofcharge": ("Accu", "read_battery"),
-    "charge-detailedchargingstatus": ("Laadstatus", "read_charge"),
+    "charge-ischarging": ("Laadstatus", "read_charge"),
     "charge-ischargingcableconnected": ("Laadkabel", "read_charge"),
 }
 
@@ -98,8 +99,7 @@ def summarize_signal(payload, code):
     elif code == "charge-ischargingcableconnected":
         safe_value = {True: "Aangesloten", False: "Losgekoppeld"}.get(value, "Onbekend") if type(value) is bool else "Onbekend"
     else:
-        statuses = {"CHARGING", "NOT_CHARGING", "FULLY_CHARGED", "COMPLETE", "PAUSED", "SCHEDULED", "ERROR", "UNKNOWN"}
-        safe_value = value if isinstance(value, str) and value in statuses else "Onbekend"
+        safe_value = {True: "Aan het laden", False: "Niet aan het laden"}.get(value, "Onbekend") if type(value) is bool else "Onbekend"
     metadata = signal.get("meta", {})
     if not isinstance(metadata, dict):
         metadata = {}
@@ -108,7 +108,7 @@ def summarize_signal(payload, code):
             "retrieved_at": timestamp(metadata.get("retrievedAt"))}
 
 
-def probe(client_id, client_secret, *, opener=None):
+def probe(client_id, client_secret, *, opener=None, include_battery=False):
     opener = opener or build_opener(NoRedirect())
     report = {"authenticated": False, "live_vehicles": 0, "permissions": {}, "signals": {}}
     try:
@@ -137,6 +137,8 @@ def probe(client_id, client_secret, *, opener=None):
         report["permissions"] = {name: name in granted for name in PERMISSIONS}
         headers["sc-user-id"] = user
         for code, (_, permission) in SIGNALS.items():
+            if code == "tractionbattery-stateofcharge" and not include_battery:
+                continue
             if not report["permissions"][permission]:
                 report["signals"][code] = {"status": "Niet opgevraagd: toestemming ontbreekt"}
                 continue
@@ -167,11 +169,15 @@ def print_report(report):
             print("  Door Smartcar opgehaald (UTC): " + result["retrieved_at"])
     if report.get("error"):
         print("Uitkomst: " + report["error"])
+    print("Voor de planner zijn read_charge en control_charge nodig; read_battery is optioneel.")
     print("Laadstart en laadstop zijn niet getest; toestemming bewijst geen werkende bediening of pakketrecht.")
     print("EINDE SMARTCAR-CONTROLE")
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--battery", action="store_true", help="Lees ook het optionele accupercentage (extra signaal).")
+    args = parser.parse_args()
     if not sys.stdin.isatty():
         raise CheckError("Start deze controle rechtstreeks in de Cloud Shell-terminal voor verborgen invoer.")
     print("Leescontrole voor Smartcar. Voer Client ID en Client Secret uitsluitend hier in.")
@@ -181,7 +187,7 @@ def main():
     client_secret = getpass.getpass("Client Secret (verborgen invoer): ")
     if not client_secret:
         raise CheckError("Client Secret ontbreekt.")
-    print_report(probe(client_id, client_secret))
+    print_report(probe(client_id, client_secret, include_battery=args.battery))
 
 
 if __name__ == "__main__":
