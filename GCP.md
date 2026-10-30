@@ -64,6 +64,16 @@ Controleer in een privévenster of aanmelden bij myVolkswagen met de ingevoerde 
 
 De website onderscheidt bekende meldingen over afgewezen gegevens, toestemming, extra verificatie, beperkte inlogpogingen en tijdelijke storingen. Alleen vaste Nederlandse teksten worden getoond; ruwe providerantwoorden blijven afgeschermd. De toepassing accepteert geen voorwaarden namens je en schakelt tweestapscontrole niet uit. Bij een onbekende aanmeldfout is verder onderzoek nodig; de tekst noemt dan geen onbevestigde oorzaak.
 
+Voor een gerichte controle zonder de website opnieuw te bouwen:
+
+```sh
+cd ~/zwogen
+git pull --ff-only
+python3 tools/diagnose_vw.py JOUW-PROJECT-ID
+```
+
+Deze controle installeert zo nodig dezelfde vastgezette VW-bibliotheek in een aparte Python-omgeving onder je persoonlijke cachemap. Het script leest de bestaande VW-gegevens uit Secret Manager in het geheugen en doet één nieuwe aanmelding. De uitvoer bevat uitsluitend vaste stapnamen, HTTP-statuscodes, de aanwezigheid van een doorverwijzing en de bronlocatie van een fout in de bibliotheek. Geen wachtwoorden, tokens, cookies, aanmeldlinks of ruwe foutberichten worden getoond of naar bestanden geschreven. Het script haalt geen auto op en verstuurt geen laadopdracht. De aanmelding kan bij Volkswagen een sessie of verificatiemelding veroorzaken. De controle draait vanuit Cloud Shell; een geslaagde controle bewijst nog niet dat hetzelfde vanuit Cloud Run lukt.
+
 ## Eerste controle
 
 1. Open het HTTPS-adres op je telefoon en log in met het app-wachtwoord.
