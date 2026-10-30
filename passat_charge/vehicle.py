@@ -9,6 +9,29 @@ class VehicleError(Exception):
     """A deliberately credential-free error suitable for the UI."""
 
 
+def authentication_message(error):
+    """Classify known connector failures without returning provider content."""
+    from carconnectivity.errors import TemporaryAuthenticationError
+
+    if isinstance(error, TemporaryAuthenticationError):
+        return "De Volkswagen-inlogdienst is tijdelijk niet beschikbaar. Probeer het later opnieuw."
+    reason = str(error).lower()
+    if any(marker in reason for marker in ("terms and conditions", "missing consent")):
+        return "Volkswagen vraagt om toestemming of nieuwe voorwaarden. Log in bij myVolkswagen en bekijk de melding."
+    if any(marker in reason for marker in ("throttled", "too many", "login.error.throttled")):
+        return "Volkswagen beperkt de inlogpogingen tijdelijk. Probeer het later opnieuw."
+    if any(marker in reason for marker in ("two factor", "two-factor", "two_factor", "2fa", "multi-factor")):
+        return "Volkswagen vraagt extra verificatie. De automatische koppeling kan daardoor nog niet aanmelden."
+    if any(marker in reason for marker in ("password is invalid", "password_invalid")):
+        return "Volkswagen accepteert het opgeslagen VW-wachtwoord niet. Controleer je gegevens bij myVolkswagen."
+    if ("email invalid" in reason or "is the username correct" in reason
+            or ("account " in reason and "does not exist" in reason)):
+        return "Volkswagen accepteert het opgeslagen e-mailadres niet. Controleer met welk VW-account je auto gekoppeld is."
+    if reason.startswith("login failed with status code:"):
+        return "Volkswagen heeft de aanmelding van deze koppeling geweigerd. Controleer of inloggen bij myVolkswagen lukt."
+    return "Aanmelden bij Volkswagen mislukt. Controleer je opgeslagen VW-gegevens en eventuele meldingen bij myVolkswagen."
+
+
 @dataclass(frozen=True)
 class Snapshot:
     available: bool = False
@@ -111,7 +134,7 @@ class Volkswagen:
 
             if isinstance(error, AuthenticationError):
                 self.client = None
-                raise VehicleError("Volkswagen-inloggen lukt niet. Controleer je koppeling en eventuele tweestapscontrole.") from None
+                raise VehicleError(authentication_message(error)) from None
             raise VehicleError("Volkswagen is nu niet bereikbaar. We proberen het later opnieuw.") from None
 
     def command(self, action):

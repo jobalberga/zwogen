@@ -58,6 +58,12 @@ Bij `FAILED_PRECONDITION: invalid bucket … service account … does not have a
 
 De melding `Dienst tijdelijk niet beschikbaar` verbergt de interne fout. Bij eerdere builds sloot het patroon `index.html` in `.gcloudignore` ook `passat_charge/templates/index.html` uit, waardoor de inlogpagina ontbrak. Het patroon is beperkt tot `/index.html` (de oude site in de hoofdmap). Haal de nieuwste code op en voer het installatiecommando opnieuw uit om een nieuw image te bouwen. De nieuwe uploadcontrole stopt als een appbestand wordt uitgesloten. Als de melding daarna blijft verschijnen, lees dan de webservicelogs; de foutklasse wordt gelogd zonder de ruwe providerfout.
 
+### Website werkt, maar aanmelden bij Volkswagen mislukt
+
+Controleer in een privévenster of aanmelden bij myVolkswagen met de ingevoerde VW-gegevens werkt, en bekijk eventuele vragen om toestemming of nieuwe voorwaarden. De auto hoeft daarvoor niet thuis te staan. Bereik van de auto kan wel het ophalen van de actuele laadstatus beïnvloeden. Een geslaagde browseraanmelding bewijst niet dat de opgeslagen servergegevens of de onofficiële koppeling werken.
+
+De website onderscheidt bekende meldingen over afgewezen gegevens, toestemming, extra verificatie, beperkte inlogpogingen en tijdelijke storingen. Alleen vaste Nederlandse teksten worden getoond; ruwe providerantwoorden blijven afgeschermd. De toepassing accepteert geen voorwaarden namens je en schakelt tweestapscontrole niet uit. Bij een onbekende aanmeldfout is verder onderzoek nodig; de tekst noemt dan geen onbevestigde oorzaak.
+
 ## Eerste controle
 
 1. Open het HTTPS-adres op je telefoon en log in met het app-wachtwoord.

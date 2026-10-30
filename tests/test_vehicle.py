@@ -8,6 +8,7 @@ from carconnectivity.charging import Charging
 from carconnectivity.charging_connector import ChargingConnector
 from carconnectivity.command_impl import ChargingStartStopCommand
 from carconnectivity.drive import CombustionDrive, ElectricDrive
+from carconnectivity.errors import AuthenticationError, TemporaryAuthenticationError
 from carconnectivity.garage import Garage
 from carconnectivity_connectors.volkswagen.vehicle import VolkswagenHybridVehicle
 
@@ -83,6 +84,47 @@ class VolkswagenAdapterTests(unittest.TestCase):
         with self.assertRaises(VehicleError) as context:
             self.adapter.refresh()
         self.assertNotIn("private-token", str(context.exception))
+
+    def test_authentication_failures_distinguish_action_without_exposing_provider_data(self):
+        private = " private-token-and-password-must-not-escape test-only@example.invalid " + self.vin
+        cases = [
+            (AuthenticationError("Password is invalid" + private), "wachtwoord niet"),
+            (AuthenticationError("login.errors.password_invalid" + private), "wachtwoord niet"),
+            (AuthenticationError("Accept the terms and conditions" + private), "voorwaarden"),
+            (AuthenticationError("Missing consent" + private), "toestemming"),
+            (AuthenticationError("Login throttled" + private), "inlogpogingen tijdelijk"),
+            (AuthenticationError("Two-factor authentication required" + private), "extra verificatie"),
+            (AuthenticationError("Error during login, email invalid" + private), "e-mailadres niet"),
+            (AuthenticationError("Error during login, account " + private + " does not exist"), "e-mailadres niet"),
+            (AuthenticationError("Login failed with status code: 200" + private), "koppeling geweigerd"),
+            (AuthenticationError(private), "Aanmelden bij Volkswagen mislukt"),
+            # A temporary error is an AuthenticationError subclass, not evidence
+            # that the stored password or account needs changing.
+            (TemporaryAuthenticationError("Token could not be fetched" + private), "tijdelijk niet beschikbaar"),
+        ]
+        for error, expected in cases:
+            with self.subTest(expected=expected, error_type=type(error).__name__):
+                self.adapter.client = self.client
+                def fail(error=error):
+                    raise error
+                self.client.fetch_all = fail
+                with self.assertRaises(VehicleError) as context:
+                    self.adapter.refresh()
+                message = str(context.exception)
+                self.assertIn(expected, message)
+                for value in ("private-token", "test-only@example.invalid", self.vin):
+                    self.assertNotIn(value, message)
+                self.assertIsNone(self.adapter.client)
+
+    def test_initial_login_failure_uses_safe_actionable_message(self):
+        self.adapter.client = None
+        with patch("carconnectivity.carconnectivity.CarConnectivity",
+                   side_effect=AuthenticationError("Password is invalid private-auth-response")):
+            with self.assertRaisesRegex(VehicleError, "opgeslagen VW-wachtwoord niet") as context:
+                self.adapter.refresh()
+        self.assertNotIn("private-auth-response", str(context.exception))
+        self.assertIsNone(self.adapter.client)
+        self.assertEqual(self.persistence, [])
 
     def test_missing_remote_command_blocks_readiness(self):
         self.car.charging.commands.commands.clear()
